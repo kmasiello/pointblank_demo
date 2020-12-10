@@ -120,8 +120,8 @@ Is air quality unhealthy?  Notify me if air quality index is over 100.
 ```
 
 ```{r}
-email <- email_create(agent_aqi)
-blastula::render_connect_email(email) %>% 
+email_create(agent_aqi) %>% 
+# blastula::render_connect_email(email) %>% 
   blastula::attach_connect_email(subject = "AQI data validation")
 ```
 
