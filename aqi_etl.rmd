@@ -69,7 +69,7 @@ cols <- c("Latitude", "Longitude", "UTC", "Pollutant",
 The `scan_data()` function creates a thorough summary report of the data.  
 ```{r}
 # takes about 30s to run...
-scan_data(response)
+# scan_data(response)
 ```
 
 ## Define basic rules for data quality to ensure import assumptions are valid
@@ -120,7 +120,9 @@ Is air quality unhealthy?  Notify me if air quality index is over 100.
 ```
 
 ```{r}
-email_create(agent_aqi)
+email <- email_create(agent_aqi)
+blastula::render_connect_email(email) %>% 
+  blastula::attach_connect_email(subject = "AQI data validation")
 ```
 
 
