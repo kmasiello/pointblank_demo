@@ -1,5 +1,5 @@
 ---
-title: "AQI ETL"
+title: "Air Quality Index ETL"
 author: "Katie Masiello"
 date: "12/2/2020"
 output: html_document
@@ -13,6 +13,7 @@ library(pointblank)
 library(dplyr)
 library(lubridate)
 library(pins)
+library(httr)
 ```
 
 Build the API query URL
@@ -37,9 +38,9 @@ format <- "format=text/csv"
 verbose <- "verbose=1"
 nowcastonly <- "nowcastonly=1"
 includeRaw <- "includerawconcentrations=1"
-API_KEY <- paste0("API_KEY=",Sys.getenv("AIRNOW_API_KEY"))
+# API_KEY <- paste0("API_KEY=",Sys.getenv("AIRNOW_API_KEY"))
 
-url <- paste(paste0(base_url,"?",
+url_sansKey <- paste(paste0(base_url,"?",
                     startDate),
              endDate,
              parameters,
@@ -48,41 +49,31 @@ url <- paste(paste0(base_url,"?",
              format,
              verbose,
              nowcastonly,
-             includeRaw,
-             API_KEY,sep="&")
+             includeRaw,sep="&")
              
 ```
 
 # Query the API
-
 ```{r}
-response <- GET(url) %>% content(col_names = FALSE)
+# column names
+cols <- c("Latitude", "Longitude", "UTC", "Pollutant",
+          "Concentration", "Unit", "Raw_Concentration", 
+          "AQI", "Category", "Site_Name", "Site_Agency", 
+          "AQS_ID", "Full_AWS_ID")
 
-# put col names 
-colnames(response) = c("Latitude", 
-                      "Longitude",
-                      "UTC",
-                      "Pollutant",
-                      "Concentration",
-                      "Unit",
-                      "Raw_Concentration",
-                      "AQI",
-                      "Category",
-                      "Site_Name",
-                      "Site_Agency",
-                      "AQS_ID",
-                      "Full_AWS_ID")
+(response <- GET(paste0(url_sansKey,"&",paste0("API_KEY=",Sys.getenv("AIRNOW_API_KEY")))) %>% content(col_names = FALSE) %>% setNames(cols))
 
 ```
 
 # explore
-
+The `scan_data()` function creates a thorough summary report of the data.  
 ```{r}
-scan_data(response)
+# takes about 30s to run...
+# scan_data(response)
 ```
 
-# Define basic rules for data quality to ensure import assumptions are valid
-
+## Define basic rules for data quality to ensure import assumptions are valid
+Since the data is coming in without column headers, let's establish a column schema to validate that the data conforms to what I'm expecting. 
 ```{r}
 # Define a column schema so we can check inputted data is as expected
 schema_aqi_table <- col_schema(Latitude = "numeric",
@@ -105,21 +96,47 @@ agent <- create_agent(response) %>% col_schema_match(schema_aqi_table, is_exact 
 all_passed(agent)
 ```
 
-mid-day ozone is highest. see if range is
+## Does the data make sense?
+We can do basic checks on the columns
+```{r}
+# define another agent with col_vals_* functions
+(agent <- response %>% create_agent() %>% 
+  col_vals_between(vars(AQI), left = 0, right = 500) %>% 
+  col_vals_gte(vars(Concentration, Raw_Concentration), value = 0) %>% 
+  interrogate())
+```
+
+If there are records that do not pass the basic checks, we can omit those records and move forward with only those that pass.
+```{r}
+clean_response <- get_sundered_data(agent, type = "pass")
+fail_response <- get_sundered_data(agent, type = "fail")
+```
+
+## Define some alerts
+Is air quality unhealthy?  Notify me if air quality index is over 100.
+```{r}
+(agent_aqi <- clean_response %>% create_agent() %>% 
+  col_vals_lte(vars(AQI), value = 20) %>% interrogate())
+```
 
 ```{r}
+email_create(agent_aqi) %>% 
+# blastula::render_connect_email(email) %>% 
+  blastula::attach_connect_email(subject = "AQI data validation")
+```
+
+
+## Share the results
+```{r}
+# Let's email the results if we have failed data and if we have an AQI that's at an unhealthy level
+
+```
+
+mid-day ozone is highest. see if range is
+
+```{r eval=FALSE}
 agent <- create_agent(read_fn = ~response, label = "Air Quality Report") %>% 
   col_vals_between(columns = vars(Raw_Concentration), left = 1, right = 20, preconditions = ~. %>% dplyr::filter(Pollutant == "OZONE") 
                                                                                               ) %>% interrogate()
 ```
 
-```{r}
-(agent <- create_agent(read_fn = ~response, label = "Air Quality Report") %>% 
-  col_vals_not_equal(vars(Raw_Concentration), value = -999) %>% interrogate() 
-)
-```
-
-```{r}
-agent %>% get_sundered_data(type = "fail") %>% View()
-
-```
