@@ -1,0 +1,38 @@
+---
+title: "Using `pointblank` in ad hoc analysis"
+author: "Katie Masiello"
+date: "2/15/2021"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Say you just received a new project and you've just gotten your hands on the first batch of data.  Let's go through some steps to explore this data with the help of `pointblank`
+
+```{r packages, include = FALSE}
+library(tidyverse)
+library(pointblank)
+```
+
+### Bring in the data 
+We're going to bring in data from the FAA Wildlife Strike Database with data from 1990 to 2018. 
+```{r}
+strikes <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-07-23/wildlife_impacts.csv")
+
+```
+
+There are many ways to get a feel for the data, including `summary(strikes)` or `skimr::skim(strikes)`
+```{r}
+summary(strikes)
+skimr::skim(strikes)
+```
+
+Pointblank offers the `scan_data()` function to provide a comprehensive view of the data. (this can take some time to run... be patient, or consider running this as a background job) 
+```{r}
+scan_data(strikes)
+```
+

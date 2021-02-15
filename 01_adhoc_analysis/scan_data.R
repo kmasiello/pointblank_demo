@@ -1,0 +1,1 @@
+scan_data(strikes)
