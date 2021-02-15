@@ -1,0 +1,6 @@
+---
+title: "Email Document"
+output: blastula::blastula_email
+---
+
+Breathe easy!  AQI measurements are all good for `r nrow(good_air)` measurements.

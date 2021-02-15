@@ -14,6 +14,7 @@ library(dplyr)
 library(lubridate)
 library(pins)
 library(httr)
+library(blastula)
 ```
 
 Build the API query URL
@@ -115,14 +116,27 @@ fail_response <- get_sundered_data(agent, type = "fail")
 ## Define some alerts
 Is air quality unhealthy?  Notify me if air quality index is over 100.
 ```{r}
+threshold <- 20
 (agent_aqi <- clean_response %>% create_agent() %>% 
-  col_vals_lte(vars(AQI), value = 20) %>% interrogate())
+  col_vals_lte(vars(AQI), value = threshold) %>% interrogate())
 ```
 
 ```{r}
+bad_air <- get_sundered_data(agent_aqi, type = "fail")
+good_air <- get_sundered_data(agent_aqi, type = "pass")
+```
+
+
+```{r}
+
+if(nrow(bad_air) > 0){
 email_create(agent_aqi) %>% 
 # blastula::render_connect_email(email) %>% 
-  blastula::attach_connect_email(subject = "AQI data validation")
+  blastula::attach_connect_email(subject = paste("AQI exceeds",threshold, "for", nrow(bad_air), "measurements"))
+} else {
+  render_connect_email("email_good_air.rmd") %>% 
+    attach_connect_email(subject = "Good air report")
+}
 ```
 
 
@@ -138,5 +152,37 @@ mid-day ozone is highest. see if range is
 agent <- create_agent(read_fn = ~response, label = "Air Quality Report") %>% 
   col_vals_between(columns = vars(Raw_Concentration), left = 1, right = 20, preconditions = ~. %>% dplyr::filter(Pollutant == "OZONE") 
                                                                                               ) %>% interrogate()
+```
+
+# Create the informant table
+```{r}
+
+pollutants <- unique(good_air$Pollutant)
+
+(informant <- good_air %>% create_informant(
+  label = "Data Dictionary for AQI Data") %>% 
+   info_tabular(
+     description = "Data from [airnow.gov](airnow.gov)") %>% 
+   info_columns(
+     columns = "Pollutant", 
+     info = "included values are `{pollutants}` "
+   ) %>% 
+    info_columns(
+      columns = "Longitude", 
+      info = "The value is between `{long_min}` and `{long_max}`"
+    ) %>%
+    info_snippet(
+      snippet_name = "pollutants", 
+      fn = snip_list("Pollutant") 
+    ) %>% 
+    info_snippet(
+      snippet_name = "long_max", 
+      fn = snip_highest("Longitude")
+    ) %>% 
+    info_snippet(
+      snippet_name = "long_min",
+      fn = snip_lowest("Longitude")
+    )
+   ) %>% incorporate()
 ```
 
