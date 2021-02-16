@@ -171,6 +171,9 @@ pre code {
 </div>
 
 
+<div class="alert alert-danger">
+<p><strong>Warning:</strong> this document contains 4 failing validations.</p>
+</div>
 <p>Say you just received a new project and you’ve just gotten your hands on the first batch of data. Let’s go through some steps to explore this data with the help of <code>pointblank</code></p>
 <div id="bring-in-the-data" class="section level3">
 <h3>Bring in the data</h3>
@@ -189,6 +192,9 @@ pre code {
 ##   cost_repairs_infl_adj = col_double()
 ## )</code></pre>
 <pre><code>## See spec(...) for full column specifications.</code></pre>
+</div>
+<div id="scan-the-data" class="section level3">
+<h3>Scan the data</h3>
 <p>There are many ways to get a feel for the data, including <code>summary(strikes)</code> or <code>skimr::skim(strikes)</code></p>
 <pre class="r"><code>summary(strikes)</code></pre>
 <pre><code>##  incident_date                    state            airport_id       
@@ -581,6 +587,177 @@ pre code {
 </tr>
 </tbody>
 </table>
+<p>Pointblank offers the <code>scan_data()</code> function to provide a comprehensive view of the data. (this can take some time to run… be patient, or consider running this as a background job)</p>
+</div>
+<div id="establish-data-validation-rules" class="section level3">
+<h3>Establish data validation rules</h3>
+<p>The results of scan_data give us some good hints for data validation issues and things to be watchful for. Namely:</p>
+<ol style="list-style-type: decimal">
+<li><code>incident_date</code> should have a value. Don’t pass NAs</li>
+<li><code>state</code> should be a two-letter abbreviation<br />
+</li>
+<li><code>airport_id</code> should be a four-letter code<br />
+</li>
+<li>Flight phase can be cross checked with height, though this could be a bit inaccurate since we are not taking into account airport elevation:</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>climb &lt; 1000 ft</li>
+<li>en route &gt;= 1000 ft</li>
+<li>descent &gt; 1000 ft<br />
+</li>
+<li>approach &lt;= 1000 ft</li>
+<li>ground ops (arrival, departure, landing roll, local, parked, take-off run, taxi) should be at a low altitude</li>
+</ol>
+</div>
+<div id="create-an-agent-for-validation" class="section level3">
+<h3>Create an agent for validation</h3>
+
+<div class="pointblank-badge-container-inner" style="text-align: center; padding-bottom: 12px; font-size: 16px;">
+  <span class="pointblank-badge label label-success" data-toggle="collapse" data-target="#chunk-2794572" aria-expanded="false" aria-controls="chunk-2794572" style="cursor: pointer;">All validations passed.</span>
+</div>
+<div id="chunk-2794572" class="pointblank-chunk panel panel-success collapse" >
+  <div class="panel" style="margin-bottom: 0px;">
+    <div class="panel-body" style="padding-left: 18px; padding-top: 18px; padding-right: 18px; padding-bottom: 0px; background: #FAFAFA;">
+      <div class="panel panel-success">
+  <div class="panel-heading" style="color:#333;border-color:transparent;">
+    <div style="display:inline-flex;width:100%;">
+      <div style="margin-top:2px;padding-left:5px;background:#FAFAFA;"><svg height="1.5em" viewBox="0 0 32 32" style="margin-top: 1px; fill: green;"><path d="M 28.28125 6.28125 L 11 23.5625 L 3.71875 16.28125 L 2.28125 17.71875 L 10.28125 25.71875 L 11 26.40625 L 11.71875 25.71875 L 29.71875 7.71875 Z"></path></svg></div>
+      <div style="padding-left:2px;padding-right:2px;padding-top:2px;padding-bottom:4px;margin-top:2px;background:#FAFAFA;width:100%;overflow-x:scroll;">
+        <code style="background-color:#FAFAFA;padding-left:0;">(agent &lt;- strikes %&gt;% 
+  create_agent() %&gt;% 
+  col_vals_not_null(vars(incident_date)) %&gt;% 
+  col_vals_expr(expr = ~ str_length(state) == 2) %&gt;% 
+  col_vals_expr(expr = ~ str_length(airport_id) == 4) %&gt;%  
+  col_vals_lt(vars(height), value = 1000, preconditions = ~. %&gt;% 
+                dplyr::filter(!is.na(height)) %&gt;% 
+                dplyr::filter(tolower(phase_of_flt) == "climb")) %&gt;% 
+  col_vals_gte(vars(height), value = 1000, preconditions = ~. %&gt;% 
+                dplyr::filter(!is.na(height)) %&gt;% 
+                dplyr::filter(tolower(phase_of_flt) == "en route")) %&gt;% 
+  col_vals_gt(vars(height), value = 1000, preconditions = ~. %&gt;% 
+                dplyr::filter(!is.na(height)) %&gt;% 
+                dplyr::filter(tolower(phase_of_flt) == "descent")) %&gt;% 
+  col_vals_lte(vars(height), value = 1000, preconditions = ~. %&gt;% 
+                dplyr::filter(!is.na(height)) %&gt;% 
+                dplyr::filter(tolower(phase_of_flt) == "approach")) %&gt;% 
+  interrogate() )</code>
+      </div>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+</div>
+
+
+<div class="pointblank-badge-container-inner" style="text-align: center; padding-bottom: 12px; font-size: 16px;">
+  <span class="pointblank-badge label label-danger" data-toggle="collapse" data-target="#chunk-2228107" aria-expanded="false" aria-controls="chunk-2228107" style="cursor: pointer;">4 validations failed.</span>
+</div>
+<div id="chunk-2228107" class="pointblank-chunk panel panel-danger collapse" >
+  <div class="panel" style="margin-bottom: 0px;">
+    <div class="panel-body" style="padding-left: 18px; padding-top: 18px; padding-right: 18px; padding-bottom: 0px; background: #FAFAFA;">
+      <div class="panel panel-success">
+  <div class="panel-heading" style="color:#333;border-color:transparent;">
+    <div style="display:inline-flex;width:100%;">
+      <div style="margin-top:2px;padding-left:5px;background:#FAFAFA;"><svg height="1.5em" viewBox="0 0 32 32" style="margin-top: 1px; fill: green;"><path d="M 28.28125 6.28125 L 11 23.5625 L 3.71875 16.28125 L 2.28125 17.71875 L 10.28125 25.71875 L 11 26.40625 L 11.71875 25.71875 L 29.71875 7.71875 Z"></path></svg></div>
+      <div style="padding-left:2px;padding-right:2px;padding-top:2px;padding-bottom:4px;margin-top:2px;background:#FAFAFA;width:100%;overflow-x:scroll;">
+        <code style="background-color:#FAFAFA;padding-left:0;">col_vals_not_null(strikes, vars(incident_date))</code>
+      </div>
+    </div>
+  </div>
+</div><div class="panel panel-danger">
+  <div class="panel-heading" style="color:#333;border-color:transparent;">
+    <div style="display:inline-flex;width:100%;">
+      <div style="margin-top:2px;padding-left:5px;background:#FAFAFA;"><svg height="1.5em" viewBox="0 0 32 32" style="margin-top: 3px; fill: red;"><path d="M 16 3 C 8.832031 3 3 8.832031 3 16 C 3 23.167969 8.832031 29 16 29 C 23.167969 29 29 23.167969 29 16 C 29 8.832031 23.167969 3 16 3 Z M 16 5 C 22.085938 5 27 9.914063 27 16 C 27 22.085938 22.085938 27 16 27 C 9.914063 27 5 22.085938 5 16 C 5 9.914063 9.914063 5 16 5 Z M 12.21875 10.78125 L 10.78125 12.21875 L 14.5625 16 L 10.78125 19.78125 L 12.21875 21.21875 L 16 17.4375 L 19.78125 21.21875 L 21.21875 19.78125 L 17.4375 16 L 21.21875 12.21875 L 19.78125 10.78125 L 16 14.5625 Z"/></svg></div>
+      <div style="padding-left:2px;padding-right:2px;padding-top:2px;padding-bottom:4px;margin-top:2px;background:#FAFAFA;width:100%;overflow-x:scroll;">
+        <code style="background-color:#FAFAFA;padding-left:0;">col_vals_expr(strikes, expr = ~ str_length(state) == 2)</code>
+      </div>
+    </div>
+    <hr style="margin-top:10px;margin-bottom:0;border:1px solid #EBCCD1;"/>
+    <div class="panel-body" style="padding-left:15px;padding-top:15px;padding-right:15px;padding-bottom:15px;background:#FAFAFA;width:100%;overflow-x:scroll;">
+      <code style="background-color:#FAFAFA;padding-left:0;overflow-x:scroll;">## Error: The `col_vals_expr()` validation failed beyond the absolute threshold level (1).
+## * failure level (12671) &gt;= failure threshold (1)</code>
+    </div>
+    <hr style="margin-top:0;margin-bottom:0;border:1px solid #EBCCD1;"/>
+  </div>
+</div><div class="panel panel-danger">
+  <div class="panel-heading" style="color:#333;border-color:transparent;">
+    <div style="display:inline-flex;width:100%;">
+      <div style="margin-top:2px;padding-left:5px;background:#FAFAFA;"><svg height="1.5em" viewBox="0 0 32 32" style="margin-top: 3px; fill: red;"><path d="M 16 3 C 8.832031 3 3 8.832031 3 16 C 3 23.167969 8.832031 29 16 29 C 23.167969 29 29 23.167969 29 16 C 29 8.832031 23.167969 3 16 3 Z M 16 5 C 22.085938 5 27 9.914063 27 16 C 27 22.085938 22.085938 27 16 27 C 9.914063 27 5 22.085938 5 16 C 5 9.914063 9.914063 5 16 5 Z M 12.21875 10.78125 L 10.78125 12.21875 L 14.5625 16 L 10.78125 19.78125 L 12.21875 21.21875 L 16 17.4375 L 19.78125 21.21875 L 21.21875 19.78125 L 17.4375 16 L 21.21875 12.21875 L 19.78125 10.78125 L 16 14.5625 Z"/></svg></div>
+      <div style="padding-left:2px;padding-right:2px;padding-top:2px;padding-bottom:4px;margin-top:2px;background:#FAFAFA;width:100%;overflow-x:scroll;">
+        <code style="background-color:#FAFAFA;padding-left:0;">col_vals_expr(strikes, expr = ~ str_length(airport_id) == 4) </code>
+      </div>
+    </div>
+    <hr style="margin-top:10px;margin-bottom:0;border:1px solid #EBCCD1;"/>
+    <div class="panel-body" style="padding-left:15px;padding-top:15px;padding-right:15px;padding-bottom:15px;background:#FAFAFA;width:100%;overflow-x:scroll;">
+      <code style="background-color:#FAFAFA;padding-left:0;overflow-x:scroll;">## Error: The `col_vals_expr()` validation failed beyond the absolute threshold level (1).
+## * failure level (70) &gt;= failure threshold (1)</code>
+    </div>
+    <hr style="margin-top:0;margin-bottom:0;border:1px solid #EBCCD1;"/>
+  </div>
+</div><div class="panel panel-danger">
+  <div class="panel-heading" style="color:#333;border-color:transparent;">
+    <div style="display:inline-flex;width:100%;">
+      <div style="margin-top:2px;padding-left:5px;background:#FAFAFA;"><svg height="1.5em" viewBox="0 0 32 32" style="margin-top: 3px; fill: red;"><path d="M 16 3 C 8.832031 3 3 8.832031 3 16 C 3 23.167969 8.832031 29 16 29 C 23.167969 29 29 23.167969 29 16 C 29 8.832031 23.167969 3 16 3 Z M 16 5 C 22.085938 5 27 9.914063 27 16 C 27 22.085938 22.085938 27 16 27 C 9.914063 27 5 22.085938 5 16 C 5 9.914063 9.914063 5 16 5 Z M 12.21875 10.78125 L 10.78125 12.21875 L 14.5625 16 L 10.78125 19.78125 L 12.21875 21.21875 L 16 17.4375 L 19.78125 21.21875 L 21.21875 19.78125 L 17.4375 16 L 21.21875 12.21875 L 19.78125 10.78125 L 16 14.5625 Z"/></svg></div>
+      <div style="padding-left:2px;padding-right:2px;padding-top:2px;padding-bottom:4px;margin-top:2px;background:#FAFAFA;width:100%;overflow-x:scroll;">
+        <code style="background-color:#FAFAFA;padding-left:0;">col_vals_lt(strikes, vars(height), value = 1000, preconditions = ~. %&gt;% 
+              dplyr::filter(!is.na(height)) %&gt;% 
+              dplyr::filter(tolower(phase_of_flt) == "climb")) </code>
+      </div>
+    </div>
+    <hr style="margin-top:10px;margin-bottom:0;border:1px solid #EBCCD1;"/>
+    <div class="panel-body" style="padding-left:15px;padding-top:15px;padding-right:15px;padding-bottom:15px;background:#FAFAFA;width:100%;overflow-x:scroll;">
+      <code style="background-color:#FAFAFA;padding-left:0;overflow-x:scroll;">## Error: Exceedance of failed test units where values in `height` should have been &lt; `1000`.
+## The `col_vals_lt()` validation failed beyond the absolute threshold level (1).
+## * failure level (2517) &gt;= failure threshold (1)</code>
+    </div>
+    <hr style="margin-top:0;margin-bottom:0;border:1px solid #EBCCD1;"/>
+  </div>
+</div><div class="panel panel-success">
+  <div class="panel-heading" style="color:#333;border-color:transparent;">
+    <div style="display:inline-flex;width:100%;">
+      <div style="margin-top:2px;padding-left:5px;background:#FAFAFA;"><svg height="1.5em" viewBox="0 0 32 32" style="margin-top: 1px; fill: green;"><path d="M 28.28125 6.28125 L 11 23.5625 L 3.71875 16.28125 L 2.28125 17.71875 L 10.28125 25.71875 L 11 26.40625 L 11.71875 25.71875 L 29.71875 7.71875 Z"></path></svg></div>
+      <div style="padding-left:2px;padding-right:2px;padding-top:2px;padding-bottom:4px;margin-top:2px;background:#FAFAFA;width:100%;overflow-x:scroll;">
+        <code style="background-color:#FAFAFA;padding-left:0;">col_vals_gte(strikes, vars(height), value = 1000, preconditions = ~. %&gt;% 
+               dplyr::filter(!is.na(height)) %&gt;% 
+               dplyr::filter(tolower(phase_of_flt) == "en route")) </code>
+      </div>
+    </div>
+  </div>
+</div><div class="panel panel-success">
+  <div class="panel-heading" style="color:#333;border-color:transparent;">
+    <div style="display:inline-flex;width:100%;">
+      <div style="margin-top:2px;padding-left:5px;background:#FAFAFA;"><svg height="1.5em" viewBox="0 0 32 32" style="margin-top: 1px; fill: green;"><path d="M 28.28125 6.28125 L 11 23.5625 L 3.71875 16.28125 L 2.28125 17.71875 L 10.28125 25.71875 L 11 26.40625 L 11.71875 25.71875 L 29.71875 7.71875 Z"></path></svg></div>
+      <div style="padding-left:2px;padding-right:2px;padding-top:2px;padding-bottom:4px;margin-top:2px;background:#FAFAFA;width:100%;overflow-x:scroll;">
+        <code style="background-color:#FAFAFA;padding-left:0;">col_vals_gt(strikes, vars(height), value = 1000, preconditions = ~. %&gt;% 
+              dplyr::filter(!is.na(height)) %&gt;% 
+              dplyr::filter(tolower(phase_of_flt) == "descent")) </code>
+      </div>
+    </div>
+  </div>
+</div><div class="panel panel-danger">
+  <div class="panel-heading" style="color:#333;border-color:transparent;">
+    <div style="display:inline-flex;width:100%;">
+      <div style="margin-top:2px;padding-left:5px;background:#FAFAFA;"><svg height="1.5em" viewBox="0 0 32 32" style="margin-top: 3px; fill: red;"><path d="M 16 3 C 8.832031 3 3 8.832031 3 16 C 3 23.167969 8.832031 29 16 29 C 23.167969 29 29 23.167969 29 16 C 29 8.832031 23.167969 3 16 3 Z M 16 5 C 22.085938 5 27 9.914063 27 16 C 27 22.085938 22.085938 27 16 27 C 9.914063 27 5 22.085938 5 16 C 5 9.914063 9.914063 5 16 5 Z M 12.21875 10.78125 L 10.78125 12.21875 L 14.5625 16 L 10.78125 19.78125 L 12.21875 21.21875 L 16 17.4375 L 19.78125 21.21875 L 21.21875 19.78125 L 17.4375 16 L 21.21875 12.21875 L 19.78125 10.78125 L 16 14.5625 Z"/></svg></div>
+      <div style="padding-left:2px;padding-right:2px;padding-top:2px;padding-bottom:4px;margin-top:2px;background:#FAFAFA;width:100%;overflow-x:scroll;">
+        <code style="background-color:#FAFAFA;padding-left:0;">col_vals_lte(strikes, vars(height), value = 1000, preconditions = ~. %&gt;% 
+               dplyr::filter(!is.na(height)) %&gt;% 
+               dplyr::filter(tolower(phase_of_flt) == "approach"))</code>
+      </div>
+    </div>
+    <hr style="margin-top:10px;margin-bottom:0;border:1px solid #EBCCD1;"/>
+    <div class="panel-body" style="padding-left:15px;padding-top:15px;padding-right:15px;padding-bottom:15px;background:#FAFAFA;width:100%;overflow-x:scroll;">
+      <code style="background-color:#FAFAFA;padding-left:0;overflow-x:scroll;">## Error: Exceedance of failed test units where values in `height` should have been &lt;= `1000`.
+## The `col_vals_lte()` validation failed beyond the absolute threshold level (1).
+## * failure level (5993) &gt;= failure threshold (1)</code>
+    </div>
+    <hr style="margin-top:0;margin-bottom:0;border:1px solid #EBCCD1;"/>
+  </div>
+</div>
+    </div>
+  </div>
+</div>
+
 </div>
 
 
