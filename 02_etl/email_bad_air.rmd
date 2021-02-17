@@ -5,7 +5,7 @@ editor_options:
   chunk_output_type: console
 ---
   
-There's some bad air out there, baby.  Mask up.
+There's some bad air out there, baby.  Mask up.  Air quality index exceeds `r threshold` for `r nrow(bad_air)` readings.
 
 ```{r echo=FALSE}
 suppressMessages(library(gt))
