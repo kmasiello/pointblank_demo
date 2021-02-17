@@ -129,12 +129,14 @@ good_air <- get_sundered_data(agent_aqi, type = "pass")
 
 ```{r}
 
+xlist <- agent_aqi %>% get_agent_x_list()
+
 if(nrow(bad_air) > 0){
-email_create(agent_aqi) %>% 
-# blastula::render_connect_email(email) %>% 
-  blastula::attach_connect_email(subject = paste("AQI exceeds",threshold, "for", nrow(bad_air), "measurements"))
+# email_create(agent_aqi) %>% 
+#  blastula::render_connect_email(email) %>% 
+#   blastula::attach_connect_email(subject = paste("AQI exceeds",threshold, "for", nrow(bad_air), "measurements"))
 } else {
-  render_connect_email("email_good_air.rmd") %>% 
+  render_connect_email(here::here("Air quality", "email_good_air.rmd")) %>% 
     attach_connect_email(subject = "Good air report")
 }
 ```
@@ -155,7 +157,7 @@ agent <- create_agent(read_fn = ~response, label = "Air Quality Report") %>%
 ```
 
 # Create the informant table
-```{r}
+```{r eval = FALSE, include = FALSE}
 
 pollutants <- unique(good_air$Pollutant)
 

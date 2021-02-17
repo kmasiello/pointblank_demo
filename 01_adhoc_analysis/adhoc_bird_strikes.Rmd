@@ -41,6 +41,7 @@ Pointblank offers the `scan_data()` function to provide a comprehensive view of 
 # Commenting this out to prevent accidentally initiating scan.  It can take a while.
 # File is also saved as scan_data.R and can be run as a Background Job using the Local Launcher.
 # scan <- scan_data(strikes)
+# fun fact, the scan object is a list.  You can save this as an rds file and retrieve it later.
 load(here::here("01_adhoc_analysis","reports","scan_data.rds"))
 print(scan)
 ```
@@ -67,20 +68,25 @@ The results of scan_data give us some good hints for data validation issues and 
   col_vals_not_null(vars(incident_date)) %>% 
   col_vals_expr(expr = ~ str_length(state) == 2) %>% 
   col_vals_expr(expr = ~ str_length(airport_id) == 4) %>%  
-  col_vals_lt(vars(height), value = 1000, preconditions = ~. %>% 
+  col_vals_lt(vars(height), label = "checks that climb entries < 1000 ft",value = 1000, preconditions = ~. %>% 
                 dplyr::filter(!is.na(height)) %>% 
                 dplyr::filter(tolower(phase_of_flt) == "climb")) %>% 
-  col_vals_gte(vars(height), value = 1000, preconditions = ~. %>% 
+  col_vals_gte(vars(height), label = "check that en route occurs >= 1000 ft", value = 1000, preconditions = ~. %>% 
                 dplyr::filter(!is.na(height)) %>% 
                 dplyr::filter(tolower(phase_of_flt) == "en route")) %>% 
-  col_vals_gt(vars(height), value = 1000, preconditions = ~. %>% 
+  col_vals_gt(vars(height), label = "check that descent is >= 1000 ft", value = 1000, preconditions = ~. %>% 
                 dplyr::filter(!is.na(height)) %>% 
                 dplyr::filter(tolower(phase_of_flt) == "descent")) %>% 
   col_vals_lte(vars(height), value = 1000, preconditions = ~. %>% 
                 dplyr::filter(!is.na(height)) %>% 
-                dplyr::filter(tolower(phase_of_flt) == "approach")) %>% 
+                dplyr::filter(tolower(phase_of_flt) == "approach")) %>%
+   col_vals_lte(vars(height), value = 1000, preconditions = ~. %>% 
+                dplyr::filter(!is.na(height)) %>% 
+                dplyr::filter(tolower(phase_of_flt) %in% 
+                               c("arrival", "departure", "landing roll",
+                                 "local", "parked", "take-off run", 
+                                 "taxi" ))) %>% 
   interrogate() )
-
 ```
 
 ```{r validate = TRUE}
@@ -99,6 +105,96 @@ col_vals_gt(strikes, vars(height), value = 1000, preconditions = ~. %>%
 col_vals_lte(strikes, vars(height), value = 1000, preconditions = ~. %>% 
                dplyr::filter(!is.na(height)) %>% 
                dplyr::filter(tolower(phase_of_flt) == "approach"))
+col_vals_lte(strikes, vars(height), value = 1000, preconditions = ~. %>% 
+               dplyr::filter(!is.na(height)) %>% 
+               dplyr::filter(tolower(phase_of_flt) %in% c("arrival", "departure", "landing roll", "local", "parked", "take-off run", "taxi" )))
 ```
 
+### Inspect the data that doesn't pass  
+
+What's going on with the three character state names? 
+
+```{r}
+fails <- get_data_extracts(agent)
+
+fails_states <- fails[['2']]
+fails_states %>% distinct(state)
+
+```
+
+Oooh, just "N/A".  We can ignore this.  
+
+And failing airport codes? 
+```{r}
+fail_ap_id <- fails[['3']]
+fail_ap_id %>% distinct(airport_id)
+
+```
+
+Nothing critical here. But does KDEN without the asterisk appear in the data?
+```{r}
+strikes %>% filter(airport_id == "KDEN")
+```
+
+Yep. So it might be good to clean up the data and combine these two airport code entries if location became important. 
+
+Flight phase information might be more important for our analysis to get correct.  Looks like from the data there is some clean up to be had and uniformity in definition to promote in our data entry. 
+```{r}
+fails_not_climb <- fails[['4']]
+fails_not_climb %>% select(airport_id, airport, height) %>% arrange(desc(height))
+
+
+fails_not_approach <- fails[['7']]
+fails_not_approach %>% select(airport_id, airport, height) %>% arrange(desc(height))
+
+fails_not_ground <- fails[['8']]
+fails_not_ground %>% select(airport_id, airport, height, phase_of_flt) %>% arrange(desc(height))
+```
+
+Many of the climb reports should have been classified as "en route," and much of the approach data should be reclassified as "descent." We should create a clean script to reclassify flight phase information for consistency.  
+
+### Document the Process
+We want to document:
+
+1. Our data validation rules because they determine how data gets cleaned and what moves forward 
+1. Any data that was omitted 
+1. Data Dictionary so we are clear on the definitions and assumptions around our data. 
+
+### Create the informant table (Data Dictionary)
+```{r eval = FALSE, include = FALSE}
+informant <- strikes %>%
+  create_informant(
+    label = "FAA Wildlife Strike Data - Data Dictionary") %>%
+  info_tabular(
+    description = "This table provides data definitions and assumptions for data used from the FAA Wildlife Strike Database, source https://wildlife.faa.gov/home") %>%
+  info_columns(
+    columns = "incident_date",
+    info = "This column has an `NA` value. [[Watch out!]]<<color: red;>>"
+  ) %>%
+  info_columns(
+    columns = "a",
+    info = "Mean value is `{a_mean}`."
+  ) %>%
+  info_columns(
+    columns = "b",
+    info = "Like column `a`. The lowest value is `{b_lowest}`."
+  ) %>%
+  info_columns(
+    columns = "b",
+    info = "The highest value is `{b_highest}`."
+  ) %>%
+  info_snippet(
+    snippet_name = "a_mean",
+    fn = ~ . %>% .$a %>% mean(na.rm = TRUE) %>% round(2)
+  ) %>%
+  info_snippet(snippet_name = "b_lowest", fn = snip_lowest("b")) %>%
+  info_snippet(snippet_name = "b_highest", fn = snip_highest("b")) %>%
+  info_section(
+    section_name = "further information", 
+    `examples and documentation` = "Examples for how to use the
+    `info_*()` functions (and many more) are available at the
+    [**pointblank** site](https://rich-iannone.github.io/pointblank/)."
+  ) %>%
+  incorporate()
+```
 
