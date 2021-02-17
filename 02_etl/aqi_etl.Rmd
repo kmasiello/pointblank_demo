@@ -3,6 +3,8 @@ title: "Air Quality ETL"
 author: "Katie Masiello"
 date: "2/17/2021"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -13,6 +15,8 @@ library(lubridate)
 library(pins)
 library(httr)
 library(blastula)
+library(xml2)
+library(tidyverse)
 ```
 
 Build the API query URL
@@ -121,6 +125,7 @@ threshold <- 20
 
 ```{r}
 bad_air <- get_sundered_data(agent_aqi, type = "fail")
+write_csv(bad_air, file = "bad_air.csv")
 good_air <- get_sundered_data(agent_aqi, type = "pass")
 ```
 
@@ -130,13 +135,16 @@ good_air <- get_sundered_data(agent_aqi, type = "pass")
 xlist <- agent_aqi %>% get_agent_x_list()
 
 if(nrow(bad_air) > 0){
-# email_create(agent_aqi) %>% 
-#  blastula::render_connect_email(email) %>% 
-#   blastula::attach_connect_email(subject = paste("AQI exceeds",threshold, "for", nrow(bad_air), "measurements"))
+render_connect_email(here::here("02_etl", "email_bad_air.rmd")) %>% 
+    attach_connect_email(subject = "Air Quality Alert - it's bad out there", attachments = "bad_air.csv")
 } else {
-  render_connect_email(here::here("Air quality", "email_good_air.rmd")) %>% 
+  render_connect_email(here::here("02_etl", "email_good_air.rmd")) %>% 
     attach_connect_email(subject = "Good air report")
 }
+
+
+
+
 ```
 
 

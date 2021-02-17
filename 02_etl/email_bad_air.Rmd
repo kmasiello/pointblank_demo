@@ -1,6 +1,0 @@
----
-title: "Email Document"
-output: blastula::blastula_email
----
-  
-Bad air
