@@ -1,0 +1,188 @@
+---
+title: "Untitled"
+author: "Katie Masiello"
+date: "2/17/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(pointblank)
+library(dplyr)
+library(lubridate)
+library(pins)
+library(httr)
+library(blastula)
+```
+
+Build the API query URL
+
+```{r}
+base_url <- "https://www.airnowapi.org/aq/data/"
+
+# variable endpoints
+# Query the API for current date and the last `timespan` hours
+timespan <- 24 #hours
+.now <- now("UTC")
+.then <- .now - hours(timespan)
+
+endDate <- paste0("endDate=",date(.now),"T",stringr::str_pad(hour(.now),width = 2,pad = 0))
+startDate <- paste0("startDate=",date(.then),"T",stringr::str_pad(hour(.then),width = 2,pad = 0))
+
+# constant endpoints
+parameters <- "parameters=OZONE,PM25,PM10,CO,NO2,SO2"
+boundingBox <- "BBOX=-123.146648,46.996876,-121.487713,48.204308"
+dataType <- "dataType=B"
+format <- "format=text/csv"
+verbose <- "verbose=1"
+nowcastonly <- "nowcastonly=1"
+includeRaw <- "includerawconcentrations=1"
+# API_KEY <- paste0("API_KEY=",Sys.getenv("AIRNOW_API_KEY"))
+
+url_sansKey <- paste(paste0(base_url,"?",
+                    startDate),
+             endDate,
+             parameters,
+             boundingBox,
+             dataType,
+             format,
+             verbose,
+             nowcastonly,
+             includeRaw,sep="&")
+             
+```
+
+# Query the API
+```{r}
+# column names
+cols <- c("Latitude", "Longitude", "UTC", "Pollutant",
+          "Concentration", "Unit", "Raw_Concentration", 
+          "AQI", "Category", "Site_Name", "Site_Agency", 
+          "AQS_ID", "Full_AWS_ID")
+
+(response <- GET(paste0(url_sansKey,"&",paste0("API_KEY=",Sys.getenv("AIRNOW_API_KEY")))) %>% content(col_names = FALSE) %>% setNames(cols))
+
+```
+
+# explore
+The `scan_data()` function creates a thorough summary report of the data.  
+```{r}
+# takes about 30s to run...
+# scan_data(response)
+```
+
+## Define basic rules for data quality to ensure import assumptions are valid
+Since the data is coming in without column headers, let's establish a column schema to validate that the data conforms to what I'm expecting. 
+```{r}
+# Define a column schema so we can check inputted data is as expected
+schema_aqi_table <- col_schema(Latitude = "numeric",
+                               Longitude = "numeric",
+                               UTC = c("POSIXct"),
+                               Pollutant = "character",
+                               Concentration = "numeric",
+                               Unit = "character",
+                               Raw_Concentration = "numeric",
+                               AQI = "numeric",
+                               Category = "numeric",
+                               Site_Name = "character",
+                               Site_Agency = "character",
+                               AQS_ID = "numeric",
+                               Full_AWS_ID = "numeric")
+```
+
+```{r}
+agent <- create_agent(response) %>% col_schema_match(schema_aqi_table, is_exact = FALSE) %>% interrogate() 
+all_passed(agent)
+```
+
+## Does the data make sense?
+We can do basic checks on the columns
+```{r}
+# define another agent with col_vals_* functions
+(agent <- response %>% create_agent() %>% 
+  col_vals_between(vars(AQI), left = 0, right = 500) %>% 
+  col_vals_gte(vars(Concentration, Raw_Concentration), value = 0) %>% 
+  interrogate())
+```
+
+If there are records that do not pass the basic checks, we can omit those records and move forward with only those that pass.
+```{r}
+clean_response <- get_sundered_data(agent, type = "pass")
+fail_response <- get_sundered_data(agent, type = "fail")
+```
+
+## Define some alerts
+Is air quality unhealthy?  Notify me if air quality index is over 100.
+```{r}
+threshold <- 20
+(agent_aqi <- clean_response %>% create_agent() %>% 
+  col_vals_lte(vars(AQI), value = threshold) %>% interrogate())
+```
+
+```{r}
+bad_air <- get_sundered_data(agent_aqi, type = "fail")
+good_air <- get_sundered_data(agent_aqi, type = "pass")
+```
+
+
+```{r}
+
+xlist <- agent_aqi %>% get_agent_x_list()
+
+if(nrow(bad_air) > 0){
+# email_create(agent_aqi) %>% 
+#  blastula::render_connect_email(email) %>% 
+#   blastula::attach_connect_email(subject = paste("AQI exceeds",threshold, "for", nrow(bad_air), "measurements"))
+} else {
+  render_connect_email(here::here("Air quality", "email_good_air.rmd")) %>% 
+    attach_connect_email(subject = "Good air report")
+}
+```
+
+
+## Share the results
+```{r}
+# Let's email the results if we have failed data and if we have an AQI that's at an unhealthy level
+
+```
+
+mid-day ozone is highest. see if range is
+
+```{r eval=FALSE}
+agent <- create_agent(read_fn = ~response, label = "Air Quality Report") %>% 
+  col_vals_between(columns = vars(Raw_Concentration), left = 1, right = 20, preconditions = ~. %>% dplyr::filter(Pollutant == "OZONE") 
+                                                                                              ) %>% interrogate()
+```
+
+# Create the informant table
+```{r eval = FALSE, include = FALSE}
+
+pollutants <- unique(good_air$Pollutant)
+
+(informant <- good_air %>% create_informant(
+  label = "Data Dictionary for AQI Data") %>% 
+   info_tabular(
+     description = "Data from [airnow.gov](airnow.gov)") %>% 
+   info_columns(
+     columns = "Pollutant", 
+     info = "included values are `{pollutants}` "
+   ) %>% 
+    info_columns(
+      columns = "Longitude", 
+      info = "The value is between `{long_min}` and `{long_max}`"
+    ) %>%
+    info_snippet(
+      snippet_name = "pollutants", 
+      fn = snip_list("Pollutant") 
+    ) %>% 
+    info_snippet(
+      snippet_name = "long_max", 
+      fn = snip_highest("Longitude")
+    ) %>% 
+    info_snippet(
+      snippet_name = "long_min",
+      fn = snip_lowest("Longitude")
+    )
+   ) %>% incorporate()
+```
+

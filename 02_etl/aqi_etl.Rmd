@@ -1,10 +1,8 @@
 ---
-title: "Air Quality Index ETL"
+title: "Air Quality ETL"
 author: "Katie Masiello"
-date: "12/2/2020"
+date: "2/17/2021"
 output: html_document
-editor_options: 
-  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
