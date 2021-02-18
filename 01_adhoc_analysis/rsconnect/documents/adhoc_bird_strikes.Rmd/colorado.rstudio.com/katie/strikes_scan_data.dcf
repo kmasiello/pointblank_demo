@@ -1,0 +1,12 @@
+name: strikes_scan_data
+title: Strikes scan_data
+username: katie
+account: katie
+server: colorado.rstudio.com
+hostUrl: https://colorado.rstudio.com/rsc/__api__
+appId: 8649
+bundleId: 43580
+url: https://colorado.rstudio.com/rsc/content/8649/
+when: 1613420123.44889
+asMultiple: FALSE
+asStatic: TRUE

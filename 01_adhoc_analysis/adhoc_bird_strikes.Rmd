@@ -1,0 +1,279 @@
+---
+title: "Using `pointblank` in ad hoc analysis"
+author: "Katie Masiello"
+date: "2/15/2021"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Say you just received a new project and you've just gotten your hands on the first batch of data. Let's go through some steps to explore this data with the help of `pointblank`
+
+```{r packages, include = FALSE}
+library(tidyverse)
+library(pointblank)
+```
+
+### Bring in the data
+
+We're going to bring in data from the FAA Wildlife Strike Database with data from 1990 to 2018. (Also featured in the 2019 week 30 TidyTuesday project: https://github.com/rfordatascience/tidytuesday)
+
+```{r}
+strikes <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-07-23/wildlife_impacts.csv")
+```
+
+### Scan the data 
+There are many ways to get a feel for the data, including `summary(strikes)` or `skimr::skim(strikes)`. 
+
+```{r}
+summary(strikes)
+skimr::skim(strikes)
+```
+
+Pointblank offers the `scan_data()` function to provide a comprehensive view of the data. (this can take some time to run... be patient, or consider running this as a background job)
+
+```{r eval=FALSE, include=FALSE}
+# Commenting this out to prevent accidentally initiating scan.  It can take a while.
+# File is also saved as scan_data.R and can be run as a Background Job using the Local Launcher.
+# scan <- scan_data(strikes)
+# fun fact: the object returned from scan_data is a list.  You can save this as an rds file and retrieve it later.
+load(here::here("01_adhoc_analysis", "reports", "scan_data.rds"))
+print(scan)
+```
+
+### Establish data validation rules
+
+The results of scan_data give us some good hints for data validation issues and things to be watchful for. Namely:
+
+1.  `incident_date` should have a value. Don't pass NAs
+1.  `state` should be a two-letter abbreviation\
+1.  `airport_id` should be a four-letter code\
+1.  Flight phase can be cross checked with height, though this could be a bit inaccurate since we are not taking into account airport elevation:
+  a.  climb < 1000 ft
+  a.  en route >= 1000 ft
+  a.  descent > 1000 ft  
+  a.  approach <= 1000 ft
+  a. ground ops (arrival, departure, landing roll, local, parked, take-off run, taxi) should be at a low altitude
+
+### Create an agent for validation
+
+```{r agent}
+(agent <- strikes %>%
+  create_agent() %>%
+  col_vals_not_null(vars(incident_date),
+    label = "Check that date is not null"
+  ) %>%
+  col_vals_expr(
+    label = "Check that State is 2 characters",
+    expr = ~ str_length(state) == 2
+  ) %>%
+  col_vals_expr(
+    label = "Check that airport code is 4 characters",
+    expr = ~ str_length(airport_id) == 4
+  ) %>%
+  col_vals_lt(vars(height),
+    label = "Check that climb entries < 1000 ft",
+    value = 1000,
+    preconditions = ~ . %>%
+      dplyr::filter(!is.na(height)) %>%
+      dplyr::filter(tolower(phase_of_flt) == "climb")
+  ) %>%
+  col_vals_gte(vars(height),
+    label = "Check that en route occurs >= 1000 ft",
+    value = 1000,
+    preconditions = ~ . %>%
+      dplyr::filter(!is.na(height)) %>%
+      dplyr::filter(tolower(phase_of_flt) == "en route")
+  ) %>%
+  col_vals_gt(vars(height),
+    label = "Check that descent is > 1000 ft",
+    value = 1000,
+    preconditions = ~ . %>%
+      dplyr::filter(!is.na(height)) %>%
+      dplyr::filter(tolower(phase_of_flt) == "descent")
+  ) %>%
+  col_vals_lte(vars(height),
+    label = "Check that approach is <= 1000 ft",
+    value = 1000,
+    preconditions = ~ . %>%
+      dplyr::filter(!is.na(height)) %>%
+      dplyr::filter(tolower(phase_of_flt) == "approach")
+  ) %>%
+  col_vals_lte(vars(height), label = "Check that ground operations phases are < 1000 ft", value = 1000, preconditions = ~ . %>%
+    dplyr::filter(!is.na(height)) %>%
+    dplyr::filter(tolower(phase_of_flt) %in%
+      c(
+        "arrival", "departure", "landing roll",
+        "local", "parked", "take-off run",
+        "taxi"
+      ))) %>%
+  interrogate())
+
+
+```
+
+
+### Inspect the data that doesn't pass  
+
+What's going on with the three character state names? 
+
+```{r}
+fails <- get_data_extracts(agent)
+
+(fails_states <- fails[["2"]])
+fails_states %>% group_by(state) %>% summarise(count = n())
+```
+
+Oooh, just "N/A".  A later data cleaning step might be to pull in airport code or airport name lookup tables to fill in missing data.
+
+And failing airport codes? 
+```{r}
+(fail_ap_id <- fails[["3"]])
+fail_ap_id %>% group_by(airport_id) %>% summarise(count = n())
+```
+
+Nothing critical here.  But if we're going to do geographic studies but I wonder ifKDEN without the asterisk appear in the data?
+```{r}
+strikes %>% filter(airport_id == "KDEN") %>% tally()
+```
+
+Yep. So it might be good to clean up the data and combine these two airport code entries if location became important. 
+
+Flight phase information might be more important for our analysis to get correct.  Looks like from the data there is some clean up to be had and uniformity in definition to promote in our data entry. 
+```{r}
+fails_not_climb <- fails[["4"]]
+fails_not_climb %>%
+  select(airport_id, airport, height) %>%
+  arrange(desc(height))
+
+
+fails_not_approach <- fails[["7"]]
+fails_not_approach %>%
+  select(airport_id, airport, height) %>%
+  arrange(desc(height))
+
+fails_not_ground <- fails[["8"]]
+fails_not_ground %>%
+  select(airport_id, airport, height, phase_of_flt) %>%
+  arrange(desc(height))
+```
+
+Many of the climb reports should have been classified as "en route," and much of the approach data should be reclassified as "descent." We should create a clean script to reclassify flight phase information for consistency.  
+
+### Create the informant table (Data Dictionary)
+```{r eval = FALSE, include = FALSE}
+(informant <- strikes %>%
+  create_informant(
+    label = "FAA Wildlife Strike Data - Data Dictionary"
+  ) %>%
+  info_tabular(
+    description = "This table provides data definitions and assumptions for data used from the FAA Wildlife Strike Database, source https://wildlife.faa.gov/home"
+  ) %>%
+  info_columns(
+    columns = "incident_date",
+    info = "Date of incident. Data exists for the range of {date_min} to {date_max}."
+  ) %>%
+  info_columns(
+    columns = "state",
+    info = "State. *This data is cross checked and can be overwritten by data cleaning scripts*."
+  ) %>%
+  info_columns(
+    columns = "airport_id",
+    info = "ICAO airport code for airport closest to event."
+  ) %>%
+  info_columns(
+    columns = "airport",
+    info = "Airport closest to event."
+  ) %>%
+    info_columns(
+    columns = "operator",
+    info = "Operator."
+  ) %>%
+    info_columns(
+    columns = "atype",
+    info = "Aircraft. *This data is cross checked with `type_eng`*."
+  ) %>%
+    info_columns(
+    columns = "type_eng",
+    info = "Engine type. Turboshaft (helicopter): Y = Other. *This data is cross checked with `atype`*."
+  ) %>%
+    info_columns(
+    columns = "species_id",
+    info = "International Civil Aviation Organization code for type of bird or other wildlife."
+  ) %>%
+  info_columns(
+    columns = "species",
+    info = "Common name for bird or other wildlife."
+  ) %>%
+  info_columns(
+    columns = "damage",
+    info = "Damage: N None M Minor, M Uncertain, S Substantial, D Destroyed."
+  ) %>%
+  info_columns(
+    columns = "num_engs",
+    info = "Number of engines."
+  ) %>%
+  info_columns(
+    columns = "incident_month",
+    info = "Incident month."
+  ) %>%
+  info_columns(
+    columns = "incident_year",
+    info = "Incident year."
+  ) %>%
+  info_columns(
+    columns = "time_of_day",
+    info = "Light conditions."
+  ) %>%
+  info_columns(
+    columns = "time",
+    info = "Hour and minute of incident in local time."
+  ) %>%
+  info_columns(
+    columns = "height",
+    info = "Feet Above Ground Level"
+  ) %>%
+  info_columns(
+    columns = "speed",
+    info = "Knots (indicated air speed)."
+  ) %>%
+  info_columns(
+    columns = "phase_of_flt",
+    info = "Phase of flight during which strike occurred."
+  ) %>%
+  info_columns(
+    columns = "sky",
+    info = "Type of cloud cover, if any."
+  ) %>%
+  info_columns(
+    columns = "precip",
+    info = "Precipitation."
+  ) %>%
+  info_columns(
+    columns = "cost_repairs_infl_adj",
+    info = "Costs adjusted to the most recent year based on Consumer Price Index, U.S. Department of Labor. Inflation-adjusted costs."
+  ) %>%
+  info_snippet(snippet_name = "date_min", fn = snip_lowest("incident_date")) %>%
+  info_snippet(snippet_name = "date_max", fn = snip_highest("incident_date")) %>%
+  info_section(
+    section_name = "further information",
+    `source` = "Data from [**FAA Wildlife Strike Database**](https://wildlife.faa.gov/home)."
+  ) %>%
+  incorporate())
+
+#Lets save the data dictionary list object to call later
+# save(informant, file=here::here("01_adhoc_analysis","reports", "data_dictionary.rds"))
+```
+
+
+### Document the Process
+We want to document and share our validations and assumptions.  These artifacts are published to RStudio Connect:
+
+1. Data summary - see scan_data() at https://colorado.rstudio.com/rsc/strikes_scan_data/
+1. Data validation results - see the agent published at https://colorado.rstudio.com/rsc/strikes_validation_agent/
+1. Data Dictionary so we are clear on the definitions and assumptions around our data - see https://colorado.rstudio.com/rsc/strikes_data_dictionary/
+

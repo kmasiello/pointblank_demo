@@ -1,0 +1,19 @@
+---
+title: "Email Document"
+output: blastula::blastula_email
+editor_options: 
+  chunk_output_type: console
+---
+  
+There's some bad air out there, baby.  Mask up.  Air quality index exceeds `r threshold` for `r nrow(bad_air)` readings.  These are taken over the last `r timespan` hours. 
+
+```{r echo=FALSE}
+suppressMessages(library(gt))
+xlist$report_html
+```
+Here are top 10 highest readings:
+
+```{r echo=FALSE}
+bad_air %>% select(Site_Name, AQI, Pollutant, Concentration, Unit) %>% arrange(desc(AQI)) %>% head(10) %>% gt::gt() %>% gt::as_raw_html() 
+```
+
