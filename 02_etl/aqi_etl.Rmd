@@ -17,6 +17,7 @@ library(httr)
 library(blastula)
 library(xml2)
 library(tidyverse)
+library(glue)
 ```
 
 Build the API query URL
@@ -94,12 +95,12 @@ schema_aqi_table <- col_schema(Latitude = "numeric",
                                Full_AWS_ID = "numeric")
 ```
 
-```{r}
+```{r validate = TRUE}
 agent <- create_agent(response) %>% col_schema_match(schema_aqi_table, is_exact = FALSE) %>% interrogate() 
 all_passed(agent)
 ```
 
-## Does the data make sense?
+# Does the data make sense?
 We can do basic checks on the columns
 ```{r}
 # define another agent with col_vals_* functions
@@ -115,8 +116,8 @@ clean_response <- get_sundered_data(agent, type = "pass")
 fail_response <- get_sundered_data(agent, type = "fail")
 ```
 
-## Define some alerts
-Is air quality unhealthy?  Notify me if air quality index is over 100.
+# Define some alerts
+Is air quality unhealthy?  Email me if air quality index is over a specific threshold.
 ```{r}
 threshold <- 20
 (agent_aqi <- clean_response %>% create_agent() %>% 
@@ -147,20 +148,6 @@ render_connect_email(here::here("email_bad_air.rmd")) %>%
 
 ```
 
-
-## Share the results
-```{r}
-# Let's email the results if we have failed data and if we have an AQI that's at an unhealthy level
-
-```
-
-mid-day ozone is highest. see if range is
-
-```{r eval=FALSE}
-agent <- create_agent(read_fn = ~response, label = "Air Quality Report") %>% 
-  col_vals_between(columns = vars(Raw_Concentration), left = 1, right = 20, preconditions = ~. %>% dplyr::filter(Pollutant == "OZONE") 
-                                                                                              ) %>% interrogate()
-```
 
 # Create the informant table
 ```{r eval = FALSE, include = FALSE}
@@ -194,3 +181,10 @@ pollutants <- unique(good_air$Pollutant)
    ) %>% incorporate()
 ```
 
+# Log it
+Very simplistic log of date and data sent:
+```{r}
+
+glue("Report run {blastula::add_readable_time()} 
+      {xlist$n_failed} readings exceeded threshold of {threshold} in the last {timespan} hours. ")
+```
