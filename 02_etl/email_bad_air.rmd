@@ -17,3 +17,22 @@ Here are top 10 highest readings:
 bad_air %>% select(Site_Name, AQI, Pollutant, Concentration, Unit) %>% arrange(desc(AQI)) %>% head(10) %>% gt::gt() %>% gt::as_raw_html() 
 ```
 
+
+```{r}
+library(reactable)
+
+summary_tbl <- bad_air %>% select(Site_Name, AQI, Pollutant, Concentration, Unit) %>% arrange(desc(AQI))
+
+reactable(summary_tbl, groupBy = c("Site_Name", "Pollutant"),
+          defaultSorted = c("Site_Name"),
+           minRows = 15, searchable = TRUE,
+          columns = list(
+            Site_Name = colDef(), 
+            AQI = colDef(aggregate = "mean", format = colFormat(digits = 0)),
+            Pollutant = colDef(aggregate = "unique"), 
+            Concentration = colDef(aggregate = "mean", format = colFormat(digits = 0)), 
+            Unit = colDef()
+          ))
+
+```
+
