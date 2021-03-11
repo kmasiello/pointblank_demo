@@ -5,6 +5,11 @@ editor_options:
   chunk_output_type: console
 ---
   
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+```
+
 There's some bad air out there, baby.  Mask up.  Air quality index exceeds `r threshold` for `r nrow(bad_air)` readings.  These are taken over the last `r timespan` hours. 
 
 ```{r echo=FALSE}
@@ -18,7 +23,7 @@ bad_air %>% select(Site_Name, AQI, Pollutant, Concentration, Unit) %>% arrange(d
 ```
 
 
-```{r}
+```{r echo=FALSE}
 # library(reactable)
 # 
 # summary_tbl <- bad_air %>% select(Site_Name, AQI, Pollutant, Concentration, Unit) %>% arrange(desc(AQI))
