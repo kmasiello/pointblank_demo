@@ -4,8 +4,8 @@ output: blastula::blastula_email
 editor_options: 
   chunk_output_type: console
 ---
-  
-```{r setup, include=FALSE}
+
+```{r include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 
 ```
