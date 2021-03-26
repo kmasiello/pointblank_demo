@@ -10,16 +10,22 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ```
 
-There's some bad air out there, baby.  Mask up.  Air quality index exceeds `r threshold` for `r nrow(bad_air)` readings.  These are taken over the last `r timespan` hours. 
+There's some bad air out there, baby.  Mask up.  Air quality index exceeds `r threshold` for `r nrow(bad_air)` readings.  These are taken over the last `r timespan` hours. See the summary agent below and data attached.
 
 ```{r echo=FALSE}
 suppressMessages(library(gt))
 xlist$report_html
 ```
-Here are top 10 highest readings:
+Here are top 30 highest readings:
 
 ```{r echo=FALSE}
-bad_air %>% select(Site_Name, AQI, Pollutant, Concentration, Unit) %>% arrange(desc(AQI)) %>% head(10) %>% gt::gt() %>% gt::as_raw_html() 
+bad_air %>% select(Site_Name, AQI, Pollutant, Concentration, Unit) %>% 
+  arrange(desc(AQI)) %>% 
+  head(30) %>% 
+  group_by(Site_Name) %>% gt(rowname_col = "Pollutant") %>% 
+  summary_rows(groups = TRUE, columns = vars("AQI", "Concentration"), 
+               fns = list(avg = ~mean(.))) %>% as_raw_html() 
+
 ```
 
 
