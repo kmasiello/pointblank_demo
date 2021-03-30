@@ -1,0 +1,25 @@
+---
+title: "data validation"
+description: |
+  Pointblank agent - data validation tests and results.
+author:
+  - name: Katie Masiello
+    url: https://rstudio.com
+date: 02-17-2021
+output:
+  distill::distill_article:
+    self_contained: false
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+Data validation is also published at https://colorado.rstudio.com/rsc/strikes_validation_agent/
+
+```{r}
+load(here::here("_posts", "2021-02-17-data-validation","agent.rds"))
+pointblank::get_agent_report(agent)
+```
+

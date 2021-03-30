@@ -1,0 +1,16 @@
+---
+title: "Project Info"
+description: |
+  Project information for the bird strike analysis
+site: distill::distill_website
+listing: posts
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+# Learn more about creating websites with Distill at:
+# https://rstudio.github.io/distill/website.html
+
+```
+
