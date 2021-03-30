@@ -1,0 +1,21 @@
+{
+  "articles": [
+    {
+      "path": "about.html",
+      "title": "About this site",
+      "description": "Some additional details about the website",
+      "author": [],
+      "contents": "\n\n\n\n",
+      "last_modified": "2021-02-17T22:22:35-08:00"
+    },
+    {
+      "path": "index.html",
+      "title": "Project Info",
+      "description": "Project information for the bird strike analysis\n",
+      "author": [],
+      "contents": "\n\n\n\n",
+      "last_modified": "2021-02-17T22:22:36-08:00"
+    }
+  ],
+  "collections": ["posts/posts.json"]
+}

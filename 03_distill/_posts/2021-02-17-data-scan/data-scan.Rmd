@@ -1,0 +1,25 @@
+---
+title: "data scan"
+description: |
+  Pointblank data scan for an overview of the data
+author:
+  - name: Katie Masiello
+    url: https://rstudio.com
+date: 02-17-2021
+output:
+  distill::distill_article:
+    self_contained: false
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+Data validation is also published at https://colorado.rstudio.com/rsc/strikes_scan_data/
+
+```{r}
+load(here::here("_posts", "2021-02-17-data-scan","scan_data.rds"))
+scan
+```
+

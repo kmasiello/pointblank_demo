@@ -5,5 +5,20 @@ output: blastula::blastula_email
 
 Breathe easy!  AQI measurements are all good for `r nrow(good_air)` measurements.
 
+```{r echo=FALSE}
+suppressMessages(library(gt))
+```
+Here's a summary of the 20 highest readings over the last `r timespan` hours:
+
+```{r echo=FALSE}
+good_air %>% select(Site_Name, AQI, Pollutant, Concentration, Unit) %>% 
+  arrange(desc(AQI)) %>% 
+  head(20) %>% 
+  group_by(Site_Name) %>% gt(rowname_col = "Pollutant") %>% 
+  summary_rows(groups = TRUE, columns = vars("AQI", "Concentration"), 
+               fns = list(avg = ~mean(.))) %>% as_raw_html() 
+
+```
+
 
 `r xlist$report_html`

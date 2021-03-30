@@ -119,7 +119,7 @@ fail_response <- get_sundered_data(agent, type = "fail")
 # Define some alerts
 Is air quality unhealthy?  Email me if air quality index is over a specific threshold.
 ```{r}
-threshold <- 20
+threshold <- 50
 (agent_aqi <- clean_response %>% create_agent() %>% 
   col_vals_lte(vars(AQI), value = threshold) %>% interrogate())
 ```

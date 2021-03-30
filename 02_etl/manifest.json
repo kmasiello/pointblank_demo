@@ -1638,6 +1638,38 @@
         "Built": "R 4.0.3; x86_64-pc-linux-gnu; 2021-01-25 10:51:31 UTC; unix"
       }
     },
+    "htmlwidgets": {
+      "Source": "RSPM",
+      "Repository": "https://colorado.rstudio.com/rspm/all/__linux__/bionic/1363722",
+      "GithubRepo": null,
+      "GithubUsername": null,
+      "GithubRef": null,
+      "GithubSha1": null,
+      "description": {
+        "Package": "htmlwidgets",
+        "Type": "Package",
+        "Title": "HTML Widgets for R",
+        "Version": "1.5.3",
+        "Authors@R": "c(\n    person(\"Ramnath\", \"Vaidyanathan\", role = c(\"aut\", \"cph\")),\n    person(\"Yihui\", \"Xie\", role = c(\"aut\")),\n    person(\"JJ\", \"Allaire\", role = c(\"aut\")),\n    person(\"Joe\", \"Cheng\", role = c(\"aut\"), email = \"joe@rstudio.com\"),\n    person(\"Carson\", \"Sievert\", role = c(\"aut\", \"cre\"), email = \"carson@rstudio.com\", comment = c(ORCID = \"0000-0002-4958-2844\")),\n    person(\"Kenton\", \"Russell\", role = c(\"aut\", \"cph\")),\n    person(\"Ellis\", \"Hughes\", role = c(\"ctb\")),\n    person(family = \"RStudio\", role = \"cph\")\n    )",
+        "Description": "A framework for creating HTML widgets that render in various\n    contexts including the R console, 'R Markdown' documents, and 'Shiny'\n    web applications.",
+        "License": "MIT + file LICENSE",
+        "VignetteBuilder": "knitr",
+        "Imports": "grDevices, htmltools (>= 0.3), jsonlite (>= 0.9.16), yaml",
+        "Suggests": "knitr (>= 1.8), rmarkdown, testthat",
+        "Enhances": "shiny (>= 1.1)",
+        "URL": "https://github.com/ramnathv/htmlwidgets",
+        "BugReports": "https://github.com/ramnathv/htmlwidgets/issues",
+        "RoxygenNote": "7.1.1",
+        "NeedsCompilation": "no",
+        "Packaged": "2020-12-10 16:43:45 UTC; cpsievert",
+        "Author": "Ramnath Vaidyanathan [aut, cph],\n  Yihui Xie [aut],\n  JJ Allaire [aut],\n  Joe Cheng [aut],\n  Carson Sievert [aut, cre] (<https://orcid.org/0000-0002-4958-2844>),\n  Kenton Russell [aut, cph],\n  Ellis Hughes [ctb],\n  RStudio [cph]",
+        "Maintainer": "Carson Sievert <carson@rstudio.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2020-12-10 17:30:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.0.3; ; 2020-12-11 10:38:30 UTC; unix"
+      }
+    },
     "httr": {
       "Source": "RSPM",
       "Repository": "https://colorado.rstudio.com/rspm/all/__linux__/bionic/1363722",
@@ -2609,6 +2641,71 @@
         "Date/Publication": "2016-03-28 23:10:10",
         "Encoding": "UTF-8",
         "Built": "R 4.0.0; x86_64-pc-linux-gnu; 2020-05-09 16:15:34 UTC; unix"
+      }
+    },
+    "reactR": {
+      "Source": "RSPM",
+      "Repository": "https://colorado.rstudio.com/rspm/all/__linux__/bionic/1363722",
+      "GithubRepo": null,
+      "GithubUsername": null,
+      "GithubRef": null,
+      "GithubSha1": null,
+      "description": {
+        "Package": "reactR",
+        "Type": "Package",
+        "Title": "React Helpers",
+        "Version": "0.4.2",
+        "Date": "2020-01-23",
+        "Authors@R": "c(\n      person(\n        \"Facebook\", \"Inc\"\n        , role = c(\"aut\", \"cph\")\n        , comment = \"React library in lib, https://facebook.github.io/react; see AUTHORS for full list of contributors\"\n      ),\n      person(\n        \"Michel\",\"Weststrate\",\n        , role = c(\"aut\", \"cph\")\n        , comment = \"mobx library in lib, https://github.com/mobxjs\"\n      ),\n      person(\n        \"Kent\", \"Russell\"\n        , role = c(\"aut\", \"cre\")\n        , comment = \"R interface\"\n        , email = \"kent.russell@timelyportfolio.com\"\n      ),\n      person(\n        \"Alan\", \"Dipert\"\n        , role = c(\"aut\")\n        , comment = \"R interface\"\n        , email = \"alan@rstudio.com\"\n      )\n    )",
+        "Maintainer": "Kent Russell <kent.russell@timelyportfolio.com>",
+        "Description": "Make it easy to use 'React' in R with 'htmlwidget' scaffolds,\n              helper dependency functions, an embedded 'Babel' 'transpiler',\n              and examples.",
+        "URL": "https://github.com/react-R/reactR",
+        "BugReports": "https://github.com/react-R/reactR/issues",
+        "License": "MIT + file LICENSE",
+        "LazyData": "TRUE",
+        "Encoding": "UTF-8",
+        "Imports": "htmltools",
+        "Suggests": "htmlwidgets (>= 0.6.0), rmarkdown, shiny, V8, knitr, usethis,\njsonlite",
+        "RoxygenNote": "7.0.2",
+        "VignetteBuilder": "knitr",
+        "NeedsCompilation": "no",
+        "Packaged": "2020-01-24 03:41:34 UTC; kentr",
+        "Author": "Facebook Inc [aut, cph] (React library in lib,\n    https://facebook.github.io/react; see AUTHORS for full list of\n    contributors),\n  Michel Weststrate [aut, cph] (mobx library in lib,\n    https://github.com/mobxjs),\n  Kent Russell [aut, cre] (R interface),\n  Alan Dipert [aut] (R interface)",
+        "Repository": "RSPM",
+        "Date/Publication": "2020-01-24 06:50:02 UTC",
+        "Built": "R 4.0.0; ; 2020-05-10 00:23:00 UTC; unix"
+      }
+    },
+    "reactable": {
+      "Source": "RSPM",
+      "Repository": "https://colorado.rstudio.com/rspm/all/__linux__/bionic/1363722",
+      "GithubRepo": null,
+      "GithubUsername": null,
+      "GithubRef": null,
+      "GithubSha1": null,
+      "description": {
+        "Package": "reactable",
+        "Type": "Package",
+        "Title": "Interactive Data Tables Based on 'React Table'",
+        "Version": "0.2.0",
+        "Authors@R": "c(\n    person(\"Greg\", \"Lin\", email = \"glin@glin.io\", role = c(\"aut\", \"cre\")),\n    person(\"Tanner\", \"Linsley\", role = c(\"ctb\", \"cph\"), comment = \"React Table library\"),\n    person(family = \"Emotion team and other contributors\", role = c(\"ctb\", \"cph\"),\n           comment = \"Emotion library\")\n    )",
+        "Description": "Interactive data tables for R, based on the 'React Table'\n    JavaScript library. Provides an HTML widget that can be used in 'R Markdown'\n    documents and 'Shiny' applications, or viewed from an R console.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://glin.github.io/reactable,\nhttps://github.com/glin/reactable",
+        "BugReports": "https://github.com/glin/reactable/issues",
+        "Depends": "R (>= 3.1)",
+        "Imports": "digest, htmltools, htmlwidgets, jsonlite, reactR",
+        "Suggests": "covr, crosstalk, dplyr, leaflet, rmarkdown, shiny, sparkline,\ntestthat",
+        "Encoding": "UTF-8",
+        "LazyData": "true",
+        "RoxygenNote": "7.1.0",
+        "NeedsCompilation": "no",
+        "Packaged": "2020-05-28 05:25:16 UTC; greg",
+        "Author": "Greg Lin [aut, cre],\n  Tanner Linsley [ctb, cph] (React Table library),\n  Emotion team and other contributors [ctb, cph] (Emotion library)",
+        "Maintainer": "Greg Lin <glin@glin.io>",
+        "Repository": "RSPM",
+        "Date/Publication": "2020-05-28 05:50:03 UTC",
+        "Built": "R 4.0.0; ; 2020-06-01 10:54:26 UTC; unix"
       }
     },
     "readr": {
@@ -3697,10 +3794,13 @@
       "checksum": "8719f55bfad0b2c76286742df6c5bd63"
     },
     "aqi_etl.Rmd": {
-      "checksum": "08cff22b0c71b7ef3e284f8747bb8f31"
+      "checksum": "89e846b74000eee02caebc7a1c91e92d"
+    },
+    "bad_air.csv": {
+      "checksum": "d71508f05006b2e7087269530af4af18"
     },
     "email_bad_air.rmd": {
-      "checksum": "3cb4b9975fa2407d6da749cdc950de58"
+      "checksum": "20ac0e833acb42cb2e5aa61f1b95fff4"
     },
     "email_good_air.rmd": {
       "checksum": "3729b13cc519ef1bf3c898397e87f09c"
@@ -3840,6 +3940,9 @@
     "packrat/desc/htmltools": {
       "checksum": "ae8da414fd346848a1146fb456ac3f05"
     },
+    "packrat/desc/htmlwidgets": {
+      "checksum": "b176a5e1076f0632512cfe822c103e58"
+    },
     "packrat/desc/httr": {
       "checksum": "d49a839b9ff4caf128a65f5c345c01de"
     },
@@ -3951,6 +4054,12 @@
     "packrat/desc/RcppEigen": {
       "checksum": "9b6330f0bfb9c1db6f1d073331fb3694"
     },
+    "packrat/desc/reactable": {
+      "checksum": "f5f55b5dd75f5000c749cb06ff2ed18b"
+    },
+    "packrat/desc/reactR": {
+      "checksum": "e91aaa2feb2c5bf5d2797c4f96ce6184"
+    },
     "packrat/desc/readr": {
       "checksum": "eb8a7b9b88ea120c2b5b0f35ac4d2fe1"
     },
@@ -4054,7 +4163,7 @@
       "checksum": "7eed44d7310caf8a596f7e713ba56d3a"
     },
     "packrat/packrat.lock": {
-      "checksum": "b01cc8907160c82e5ee2ec52df6354c7"
+      "checksum": "8a2c245ee67b3d96b9d39ece6552993d"
     }
   },
   "users": null
