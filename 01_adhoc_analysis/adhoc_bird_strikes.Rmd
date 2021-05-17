@@ -40,9 +40,11 @@ Pointblank offers the `scan_data()` function to provide a comprehensive view of 
 # Commenting this out to prevent accidentally initiating scan.  It can take a while.
 # File is also saved as scan_data.R and can be run as a Background Job using the Local Launcher.
 # scan <- scan_data(strikes)
-# fun fact: the object returned from scan_data is a list.  You can save this as an rds file and retrieve it later.
+# fun fact: the object returned from scan_data is a list and html file.  You can save this as an rds file and retrieve it later.
 load(here::here("01_adhoc_analysis", "reports", "scan_data.rds"))
+
 print(scan)
+
 ```
 
 ### Establish data validation rules
@@ -50,8 +52,8 @@ print(scan)
 The results of scan_data give us some good hints for data validation issues and things to be watchful for. Namely:
 
 1.  `incident_date` should have a value. Don't pass NAs
-1.  `state` should be a two-letter abbreviation\
-1.  `airport_id` should be a four-letter code\
+1.  `state` should be a two-letter abbreviation 
+1.  `airport_id` should be a four-letter code 
 1.  Flight phase can be cross checked with height, though this could be a bit inaccurate since we are not taking into account airport elevation:
   a.  climb < 1000 ft
   a.  en route >= 1000 ft

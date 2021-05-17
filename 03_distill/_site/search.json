@@ -6,7 +6,7 @@
       "description": "Some additional details about the website",
       "author": [],
       "contents": "\n\n\n\n",
-      "last_modified": "2021-02-17T22:22:35-08:00"
+      "last_modified": "2021-05-13T21:37:26-07:00"
     },
     {
       "path": "index.html",
@@ -14,7 +14,7 @@
       "description": "Project information for the bird strike analysis\n",
       "author": [],
       "contents": "\n\n\n\n",
-      "last_modified": "2021-02-17T22:22:36-08:00"
+      "last_modified": "2021-05-13T21:37:27-07:00"
     }
   ],
   "collections": ["posts/posts.json"]
