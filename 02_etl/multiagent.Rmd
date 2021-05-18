@@ -3,6 +3,8 @@ title: "Untitled"
 author: "Katie Masiello"
 date: "5/17/2021"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 write the agent with x_write_disk
 use fs to list the number of files in the local directory with agent* , sort by age, delete the records after row 14 for example.
@@ -78,13 +80,6 @@ cols <- c("Latitude", "Longitude", "UTC", "Pollutant",
 
 ```
 
-# explore
-The `scan_data()` function creates a thorough summary report of the data.  
-```{r}
-# takes about 30s to run...
-# scan_data(response)
-```
-
 ## Define basic rules for data quality to ensure import assumptions are valid
 Since the data is coming in without column headers, let's establish a column schema to validate that the data conforms to what I'm expecting. 
 ```{r}
@@ -144,50 +139,10 @@ good_air <- get_sundered_data(agent_aqi, type = "pass")
 
 xlist <- agent_aqi %>% get_agent_x_list()
 
-if(nrow(bad_air) > 0){
-render_connect_email(here::here("email_bad_air.rmd")) %>% 
-    attach_connect_email(subject = "Air Quality Alert - it's bad out there", attachments = "bad_air.csv")
-} else {
-  render_connect_email(here::here("email_good_air.rmd")) %>% 
-    attach_connect_email(subject = "Good air report")
-}
+x_write_disk(agent_aqi, filename = paste0("agent",format_ISO8601(now())))
 
+fs::dir_ls()
 
-
-
-```
-
-
-# Create the informant table
-```{r eval = FALSE, include = FALSE}
-
-pollutants <- unique(good_air$Pollutant)
-
-(informant <- good_air %>% create_informant(
-  label = "Data Dictionary for AQI Data") %>% 
-   info_tabular(
-     description = "Data from [airnow.gov](airnow.gov)") %>% 
-   info_columns(
-     columns = "Pollutant", 
-     info = "included values are `{pollutants}` "
-   ) %>% 
-    info_columns(
-      columns = "Longitude", 
-      info = "The value is between `{long_min}` and `{long_max}`"
-    ) %>%
-    info_snippet(
-      snippet_name = "pollutants", 
-      fn = snip_list("Pollutant") 
-    ) %>% 
-    info_snippet(
-      snippet_name = "long_max", 
-      fn = snip_highest("Longitude")
-    ) %>% 
-    info_snippet(
-      snippet_name = "long_min",
-      fn = snip_lowest("Longitude")
-    )
-   ) %>% incorporate()
 ```
 
 # Log it

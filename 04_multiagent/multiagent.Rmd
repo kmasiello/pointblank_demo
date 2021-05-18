@@ -1,0 +1,56 @@
+---
+title: "Untitled"
+author: "Katie Masiello"
+date: "5/17/2021"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(pointblank)
+library(httr)
+library(tidyverse)
+```
+
+# Query the API
+```{r}
+# column names
+cols <- c("Latitude", "Longitude", "UTC", "Pollutant",
+          "Concentration", "Unit", "Raw_Concentration", 
+          "AQI", "Category", "Site_Name", "Site_Agency", 
+          "AQS_ID", "Full_AWS_ID")
+
+path <- here::here("04_multiagent/agents")
+
+```
+
+repeat for different days
+```{r}
+threshold <- 30
+x <- 10
+start <- paste0("2021-05-",x,"T16")
+end <- paste0("2021-05-",x+1,"T16")
+url_variable <- paste0("https://www.airnowapi.org/aq/data/?startDate=",start,"&endDate=",end,"&parameters=OZONE,PM25,PM10,CO,NO2,SO2&BBOX=-123.146648,46.996876,-121.487713,48.204308&dataType=B&format=text/csv&verbose=1&nowcastonly=1&includerawconcentrations=1")
+
+(response <- GET(paste0(url_variable,"&",paste0("API_KEY=",Sys.getenv("AIRNOW_API_KEY")))) %>% content(col_names = FALSE) %>% setNames(cols))
+```
+
+# Create the agent and write to disk
+```{r}
+agent_aqi <- response %>% create_agent() %>% 
+  col_vals_lte(vars(AQI), value = threshold, label = "less than threshold") %>% interrogate()
+
+#write to disk
+x_write_disk(agent_aqi, filename = paste0(path,"/","agent",format_ISO8601(now())),
+             keep_tbl = TRUE, keep_extracts = TRUE)
+
+#create multiagent
+(multiagent <- read_disk_multiagent(pattern = "agent*", 
+                                    path = path))
+
+
+```
+
