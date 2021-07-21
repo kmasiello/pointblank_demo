@@ -104,7 +104,7 @@ all_passed(agent)
 We can do basic checks on the columns
 ```{r}
 # define another agent with col_vals_* functions
-(agent <- response %>% create_agent() %>% 
+(agent <- response %>% create_agent(actions = action_levels(warn_at = 0.1, stop_at = 0.2)) %>% 
   col_vals_between(vars(AQI), left = 0, right = 500) %>% 
   col_vals_gte(vars(Concentration, Raw_Concentration), value = 0) %>% 
   interrogate())
@@ -131,7 +131,7 @@ good_air <- get_sundered_data(agent_aqi, type = "pass")
 ```
 
 
-```{r}
+```{r  eval = FALSE, include = FALSE}
 
 xlist <- agent_aqi %>% get_agent_x_list()
 
@@ -150,7 +150,7 @@ render_connect_email(here::here("email_bad_air.rmd")) %>%
 
 
 # Create the informant table
-```{r eval = FALSE, include = FALSE}
+```{r}
 
 pollutants <- unique(good_air$Pollutant)
 
@@ -183,7 +183,7 @@ pollutants <- unique(good_air$Pollutant)
 
 # Log it
 Very simplistic log of date and data sent:
-```{r}
+```{r eval = FALSE, include = FALSE}
 
 glue("Report run {blastula::add_readable_time()} 
       {xlist$n_failed} readings exceeded threshold of {threshold} in the last {timespan} hours. ")
