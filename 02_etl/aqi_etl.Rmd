@@ -131,7 +131,7 @@ good_air <- get_sundered_data(agent_aqi, type = "pass")
 ```
 
 
-```{r  eval = FALSE, include = FALSE}
+```{r}
 
 xlist <- agent_aqi %>% get_agent_x_list()
 
@@ -150,7 +150,7 @@ render_connect_email(here::here("email_bad_air.rmd")) %>%
 
 
 # Create the informant table
-```{r}
+```{r echo = FALSE}
 
 pollutants <- unique(good_air$Pollutant)
 
@@ -183,7 +183,7 @@ pollutants <- unique(good_air$Pollutant)
 
 # Log it
 Very simplistic log of date and data sent:
-```{r eval = FALSE, include = FALSE}
+```{r}
 
 glue("Report run {blastula::add_readable_time()} 
       {xlist$n_failed} readings exceeded threshold of {threshold} in the last {timespan} hours. ")
