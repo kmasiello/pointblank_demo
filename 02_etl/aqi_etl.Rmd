@@ -18,6 +18,7 @@ library(blastula)
 library(xml2)
 library(tidyverse)
 library(glue)
+library(ggplot2)
 ```
 
 Build the API query URL
@@ -145,6 +146,19 @@ render_connect_email(here::here("email_bad_air.rmd")) %>%
 
 
 
+
+```
+
+```{r}
+#Historical readings at worst site
+
+tbl <- response %>% select(Site_Name, UTC, AQI) %>% 
+  arrange(desc(AQI)) %>% filter(Site_Name == first(Site_Name))
+
+ggplot(tbl, aes(x = UTC, y = AQI)) + 
+  geom_step(color = "#219ebc") + 
+  theme_minimal() +
+  labs(title = paste("AQI Readings for last", timespan, "hours at", tbl$Site_Name[1])) 
 
 ```
 
