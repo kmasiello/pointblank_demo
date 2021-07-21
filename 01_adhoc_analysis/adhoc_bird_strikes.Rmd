@@ -40,7 +40,8 @@ Pointblank offers the `scan_data()` function to provide a comprehensive view of 
 # Commenting this out to prevent accidentally initiating scan.  It can take a while.
 # File is also saved as scan_data.R and can be run as a Background Job using the Local Launcher.
 # scan <- scan_data(strikes)
-# fun fact: the object returned from scan_data is a list and html file.  You can save this as an rds file and retrieve it later.
+# fun fact: the object returned from scan_data is a list and html file.  You can save this as an rds file and retrieve it later. Or export it with 
+# export_report(scan, filename = "01_adhoc_analysis/reports/tbl_scan-strikes.html")
 load(here::here("01_adhoc_analysis", "reports", "scan_data.rds"))
 
 print(scan)
