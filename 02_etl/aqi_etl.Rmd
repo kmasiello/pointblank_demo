@@ -148,7 +148,7 @@ render_connect_email(here::here("email_bad_air.rmd")) %>%
 
 
 ```
-
+# Snapshot of AQI trend for station with highest reading
 ```{r}
 #Historical readings at worst site
 
@@ -164,7 +164,7 @@ ggplot(tbl, aes(x = UTC, y = AQI)) +
 
 
 # Create the informant table
-```{r echo = FALSE}
+```{r echo = FALSE, message = FALSE}
 
 pollutants <- unique(good_air$Pollutant)
 
