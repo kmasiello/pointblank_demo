@@ -8,7 +8,8 @@ editor_options:
 Breathe easy!  AQI measurements are all good for `r nrow(good_air)` measurements.
 
 
-A sample of the most recent readings from 6 random sites:
+A sample of the most recent readings from 6 random sites:  
+
 ```{r echo=FALSE}
 most_recent <- good_air %>% 
   group_by(Site_Name) %>% 
@@ -42,6 +43,7 @@ suppressMessages(library(gt))
 
 The highest reading over the last `r timespan` hours is from the **`r tbl$Site_Name[1]`** site. This peak reading was **`r tbl$AQI[1]`**.  
 
+ 
 Here's the trend at that site:  
 
 ```{r echo=FALSE}

@@ -10,14 +10,15 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ```
 
-Mask up! There's some bad air out there, baby.  Air quality index exceeds `r threshold` for `r nrow(bad_air)` readings.  These are taken over the last `r timespan` hours. See the summary agent below and data attached.
+Mask up! There's some bad air out there, baby.  Air quality index exceeds `r threshold` for `r nrow(bad_air)` readings.  These are taken over the last `r timespan` hours. See the summary agent below and data attached.  
 
 ```{r echo=FALSE}
 suppressMessages(library(gt))
 xlist$report_html
 ```
 
-A sample of the most recent readings from 6 random sites:
+A sample of the most recent readings from 6 random sites:  
+
 ```{r echo=FALSE}
 most_recent <- bad_air %>% 
   group_by(Site_Name) %>% 
@@ -44,8 +45,8 @@ ggplot(sample_readings, aes(fill = color, ymax = AQI/350, ymin = 0, xmax = 2, xm
   guides(fill=FALSE) +
   guides(colour=FALSE)
 ```
-
-The highest reading over the last `r timespan` hours is from the **`r tbl$Site_Name[1]`** site. This peak reading was **`r tbl$AQI[1]`**.  
+  
+The highest reading over the last `r timespan` hours is from the **`r tbl$Site_Name[1]`** site. This peak reading was **`r tbl$AQI[1]`**.   
 
 Here's the trend at that site:  
 
@@ -54,7 +55,7 @@ site_plot
 ```
 
 
-Here are top 30 highest readings:
+Here are top 30 highest readings:  
 
 ```{r echo=FALSE}
 bad_air %>% select(Site_Name, AQI, Pollutant, Concentration, Unit) %>% 
