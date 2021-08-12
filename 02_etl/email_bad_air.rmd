@@ -17,11 +17,6 @@ suppressMessages(library(gt))
 xlist$report_html
 ```
 
-```{r echo=FALSE}
-#how many readings
-num_bad <- nrow(bad_air)
-sample_size <- min(num_bad, 6)
-```
 
 A sample of the most recent readings from `r sample_size` random sites:  
 
@@ -30,6 +25,10 @@ most_recent <- bad_air %>%
   group_by(Site_Name) %>% 
   slice(1) %>% ungroup() %>% 
   select(Site_Name, AQI, UTC, color)
+
+#how many sites
+num_sites <- nrow(most_recent)
+sample_size <- min(num_sites, 6)
 
 sample_readings <- most_recent %>% sample_n(sample_size)
 
