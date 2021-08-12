@@ -1,14 +1,17 @@
 ---
 title: "Pointblank Demo Assets"
 output:
-  html_document: 
+  html_document:
     theme: flatly
 editor_options: 
   chunk_output_type: console
 ---
 
+
+
+
+
 ```{r setup, include=FALSE}
-library(connectwidgets)
 library(dplyr)
 library(connectwidgets)
 library(connectapi)
@@ -40,11 +43,13 @@ pointblank_content <- client %>%
 ```
 
 +----------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ![](logo.svg){width="200"} | The assets below represent two sample use cases for [`pointblank`](https://github.com/rich-iannone/pointblank):                                                                             |
+| ![](logo.svg){width="240"} | The assets below represent two sample use cases for [`pointblank`](https://github.com/rich-iannone/pointblank):                                                                             |
 |                            |                                                                                                                                                                                             |
 |                            | -   Ad hoc analysis - let's explore a new data set, establish some validation rules, and build a data dictionary as part of our overall documentation                                       |
 |                            |                                                                                                                                                                                             |
 |                            | -   A scheduled ETL process - daily air quality readings are monitored with pointblank and an email report is generated indicating whether the values are above or below a threshold value. |
+|                            |                                                                                                                                                                                             |
+|                            | -   See the github repo for this project: <https://github.com/kmasiello/pointblank_demo>.                                                                                                   |
 +----------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 ### Ad hoc analysis - bird strikes `r emo::ji("eagle")`
