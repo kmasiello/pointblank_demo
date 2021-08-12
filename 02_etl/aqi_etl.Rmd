@@ -113,7 +113,15 @@ We can do basic checks on the columns
 
 If there are records that do not pass the basic checks, we can omit those records and move forward with only those that pass.
 ```{r}
-clean_response <- get_sundered_data(agent, type = "pass")
+clean_response <- get_sundered_data(agent, type = "pass") %>%  
+  mutate(color = case_when(
+    dplyr::between(AQI, 0, 50) ~ "green",
+    dplyr::between(AQI, 51, 100) ~ "yellow", 
+    dplyr::between(AQI, 101, 150) ~ "orange", 
+    dplyr::between(AQI, 151, 200) ~ "red", 
+    dplyr::between(AQI, 201, 300) ~ "purple", 
+    dplyr::between(AQI, 301, Inf) ~ "maroon"
+    ))
 fail_response <- get_sundered_data(agent, type = "fail")
 ```
 
@@ -127,27 +135,11 @@ threshold <- 50
 
 ```{r}
 bad_air <- get_sundered_data(agent_aqi, type = "fail")
-write_csv(bad_air, file = "bad_air.csv")
+write_csv(bad_air, file = "bad_air.csv") 
 good_air <- get_sundered_data(agent_aqi, type = "pass")
 ```
 
 
-```{r}
-
-xlist <- agent_aqi %>% get_agent_x_list()
-
-if(nrow(bad_air) > 0){
-render_connect_email(here::here("email_bad_air.rmd")) %>% 
-    attach_connect_email(subject = "Air Quality Alert - it's bad out there", attachments = "bad_air.csv")
-} else {
-  render_connect_email(here::here("email_good_air.rmd")) %>% 
-    attach_connect_email(subject = "Good air report")
-}
-
-
-
-
-```
 # Snapshot of AQI trend for station with highest reading
 ```{r}
 #Historical readings at worst site
@@ -155,11 +147,12 @@ render_connect_email(here::here("email_bad_air.rmd")) %>%
 tbl <- response %>% select(Site_Name, UTC, AQI) %>% 
   arrange(desc(AQI)) %>% filter(Site_Name == first(Site_Name))
 
-ggplot(tbl, aes(x = UTC, y = AQI)) + 
+site_plot <- ggplot(tbl, aes(x = UTC, y = AQI)) + 
   geom_step(color = "#219ebc") + 
   theme_minimal() +
   labs(title = paste("AQI Readings for last", timespan, "hours at", tbl$Site_Name[1])) 
 
+site_plot
 ```
 
 
@@ -194,6 +187,23 @@ pollutants <- unique(good_air$Pollutant)
     )
    ) %>% incorporate()
 ```
+
+
+```{r}
+
+xlist <- agent_aqi %>% get_agent_x_list()
+
+if(nrow(bad_air) > 0){
+render_connect_email(here::here("email_bad_air.rmd")) %>% 
+    attach_connect_email(subject = "Air Quality Alert - it's bad out there", attachments = "bad_air.csv")
+} else {
+  render_connect_email(here::here("email_good_air.rmd")) %>% 
+    attach_connect_email(subject = "Good air report")
+}
+
+
+```
+
 
 # Log it
 Very simplistic log of date and data sent:
