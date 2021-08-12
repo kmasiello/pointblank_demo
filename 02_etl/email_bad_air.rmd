@@ -10,12 +10,50 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ```
 
-There's some bad air out there, baby.  Mask up.  Air quality index exceeds `r threshold` for `r nrow(bad_air)` readings.  These are taken over the last `r timespan` hours. See the summary agent below and data attached.
+Mask up! There's some bad air out there, baby.  Air quality index exceeds `r threshold` for `r nrow(bad_air)` readings.  These are taken over the last `r timespan` hours. See the summary agent below and data attached.
 
 ```{r echo=FALSE}
 suppressMessages(library(gt))
 xlist$report_html
 ```
+
+A sample of the most recent readings from 6 random sites:
+```{r echo=FALSE}
+most_recent <- bad_air %>% 
+  group_by(Site_Name) %>% 
+  slice(1) %>% ungroup() %>% 
+  select(Site_Name, AQI, UTC, color)
+
+sample_readings <- most_recent %>% sample_n(6)
+
+ggplot(sample_readings, aes(fill = color, ymax = AQI/350, ymin = 0, xmax = 2, xmin = 1)) +
+  geom_rect(aes(ymax=1, ymin=0, xmax=2, xmin=1), fill ="whitesmoke") +
+  geom_rect() + 
+  coord_polar(theta = "y",start=-pi/2) + xlim(c(0, 2)) + ylim(c(0,2)) +
+  geom_text(aes(x = 0, y = 0, label = AQI, colour=color), size=5.5, family="Poppins SemiBold") +
+  geom_text(aes(x=1.5, y=1.5, label=Site_Name), family="Poppins Light", size=3) + 
+  facet_wrap(~Site_Name, ncol = 3) +
+  theme_void() +
+  scale_fill_manual(values = c(
+    "green"="forestgreen","yellow"="yellow", "orange"="darkorange", 
+    "red"="red", "purple"="purple1", "maroon"="red4")) +
+  scale_colour_manual(values = c("green"="forestgreen","yellow"="yellow", "orange"="darkorange", 
+                                 "red"="red", "purple"="purple1", "maroon"="red4")) +
+  theme(strip.background = element_blank(),
+        strip.text.x = element_blank()) +
+  guides(fill=FALSE) +
+  guides(colour=FALSE)
+```
+
+The highest reading over the last `r timespan` hours is from the **`r tbl$Site_Name[1]`** site. This peak reading was **`r tbl$AQI[1]`**.  
+
+Here's the trend at that site:  
+
+```{r echo=FALSE}
+site_plot
+```
+
+
 Here are top 30 highest readings:
 
 ```{r echo=FALSE}
@@ -23,7 +61,7 @@ bad_air %>% select(Site_Name, AQI, Pollutant, Concentration, Unit) %>%
   arrange(desc(AQI)) %>% 
   head(30) %>% 
   group_by(Site_Name) %>% gt(rowname_col = "Pollutant") %>% 
-  summary_rows(groups = TRUE, columns = vars("AQI", "Concentration"), 
+  summary_rows(groups = TRUE, columns = c("AQI", "Concentration"), 
                fns = list(avg = ~mean(.))) %>% as_raw_html() 
 
 ```
