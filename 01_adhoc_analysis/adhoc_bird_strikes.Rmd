@@ -40,9 +40,13 @@ Pointblank offers the `scan_data()` function to provide a comprehensive view of 
 # Commenting this out to prevent accidentally initiating scan.  It can take a while.
 # File is also saved as scan_data.R and can be run as a Background Job using the Local Launcher.
 # scan <- scan_data(strikes)
-# fun fact: the object returned from scan_data is a list and html file.  You can save this as an rds file and retrieve it later. Or export it with 
+# fun fact: the object returned from scan_data is a list and html file.  You can
+# save this as an rds file and retrieve it later.
+# saveRDS(scan, file = "01_adhoc_analysis/reports/scan.rds")
+
+#Or export it with 
 # export_report(scan, filename = "01_adhoc_analysis/reports/tbl_scan-strikes.html")
-load(here::here("01_adhoc_analysis", "reports", "scan_data.rds"))
+scan <- readRDS(here::here("01_adhoc_analysis", "reports", "scan.rds"))
 
 print(scan)
 
@@ -63,6 +67,7 @@ The results of scan_data give us some good hints for data validation issues and 
   a. ground ops (arrival, departure, landing roll, local, parked, take-off run, taxi) should be at a low altitude
 
 ### Create an agent for validation
+The agent is responsible for asking a set of questions (aka validations) about our data and then reporting the results.  
 
 ```{r agent}
 (agent <- strikes %>%
@@ -122,6 +127,8 @@ The results of scan_data give us some good hints for data validation issues and 
 
 ### Inspect the data that doesn't pass  
 
+All looks good for the first validation step - there are no NULL dates.
+
 What's going on with the three character state names? 
 
 ```{r}
@@ -139,35 +146,33 @@ And failing airport codes?
 fail_ap_id %>% group_by(airport_id) %>% summarise(count = n())
 ```
 
-Nothing critical here.  But if we're going to do geographic studies but I wonder ifKDEN without the asterisk appear in the data?
+Nothing critical here. I wonder if "KDEN" without the asterisk appear in the data?
 ```{r}
 strikes %>% filter(airport_id == "KDEN") %>% tally()
 ```
 
 Yep. So it might be good to clean up the data and combine these two airport code entries if location became important. 
 
-Flight phase information might be more important for our analysis to get correct.  Looks like from the data there is some clean up to be had and uniformity in definition to promote in our data entry. 
+Cross checking flight phase information might be more important for our analysis to get correct.  Looks like from the validation report there is some clean up to be had and uniformity in definition to promote in our data entry. 
 ```{r}
-fails_not_climb <- fails[["4"]]
-fails_not_climb %>%
+(fails_not_climb <- fails[["4"]] %>%
   select(airport_id, airport, height) %>%
-  arrange(desc(height))
+  arrange(desc(height)))
 
 
-fails_not_approach <- fails[["7"]]
-fails_not_approach %>%
+(fails_not_approach <- fails[["7"]] %>%
   select(airport_id, airport, height) %>%
-  arrange(desc(height))
+  arrange(desc(height)))
 
-fails_not_ground <- fails[["8"]]
-fails_not_ground %>%
+(fails_not_ground <- fails[["8"]] %>%
   select(airport_id, airport, height, phase_of_flt) %>%
-  arrange(desc(height))
+  arrange(desc(height)))
 ```
 
-Many of the climb reports should have been classified as "en route," and much of the approach data should be reclassified as "descent." We should create a clean script to reclassify flight phase information for consistency.  
+Many of the climb reports should have been classified as "en route," and much of the approach data should be reclassified as "descent." Pointblank has helped us quickly find data errors and inconsistencies. We should create a clean script to reclassify flight phase information for consistency.  
 
 ### Create the informant table (Data Dictionary)
+The informant table can be a rich source of documentation for our analysis. Document assumptions, sources, conventions, cleaning steps, etc. to provide important information about your data.  
 ```{r eval = FALSE, include = FALSE}
 (informant <- strikes %>%
   create_informant(
