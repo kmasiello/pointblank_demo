@@ -194,11 +194,13 @@ pollutants <- unique(good_air$Pollutant)
 xlist <- agent_aqi %>% get_agent_x_list()
 
 if(nrow(bad_air) > 0){
-render_connect_email(here::here("email_bad_air.rmd")) %>% 
-    attach_connect_email(subject = "Air Quality Alert - it's bad out there", attachments = "bad_air.csv")
+email <- render_connect_email(here::here("email_bad_air.rmd")) 
+
+attach_connect_email(email, subject = "Air Quality Alert - it's bad out there", attachments = "bad_air.csv")
 } else {
-  render_connect_email(here::here("email_good_air.rmd")) %>% 
-    attach_connect_email(subject = "Good air report")
+  email <- render_connect_email(here::here("email_good_air.rmd"))
+  
+attach_connect_email(email, subject = "Good air report")
 }
 
 
@@ -212,3 +214,9 @@ Very simplistic log of date and data sent:
 glue("Report run {blastula::add_readable_time()} 
       {xlist$n_failed} readings exceeded threshold of {threshold} in the last {timespan} hours. ")
 ```
+
+# Email that was sent:
+```{r results = "asis", echo=FALSE}
+email$html_html 
+```
+
