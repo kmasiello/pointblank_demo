@@ -30,9 +30,9 @@ path <- here::here("03_multiagent/agents")
 repeat for different days
 ```{r}
 threshold <- 30
-x <- 10
-start <- paste0("2021-05-",x,"T16")
-end <- paste0("2021-05-",x+1,"T16")
+x <- 4
+start <- paste0("2021-07-",x,"T16")
+end <- paste0("2021-07-",x+1,"T16")
 url_variable <- paste0("https://www.airnowapi.org/aq/data/?startDate=",start,"&endDate=",end,"&parameters=OZONE,PM25,PM10,CO,NO2,SO2&BBOX=-123.146648,46.996876,-121.487713,48.204308&dataType=B&format=text/csv&verbose=1&nowcastonly=1&includerawconcentrations=1")
 
 (response <- GET(paste0(url_variable,"&",paste0("API_KEY=",Sys.getenv("AIRNOW_API_KEY")))) %>% content(col_names = FALSE) %>% setNames(cols))
@@ -48,9 +48,8 @@ x_write_disk(agent_aqi, filename = paste0(path,"/","agent",format_ISO8601(now())
              keep_tbl = TRUE, keep_extracts = TRUE)
 
 #create multiagent
-(multiagent <- read_disk_multiagent(pattern = "agent*", 
+(multiagent <- read_disk_multiagent(pattern = "agent2021-08*", 
                                     path = path))
-
 
 ```
 

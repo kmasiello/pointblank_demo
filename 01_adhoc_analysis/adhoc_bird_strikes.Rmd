@@ -281,6 +281,8 @@ The informant table can be a rich source of documentation for our analysis. Docu
 ### Document the Process
 We want to document and share our validations and assumptions.  These artifacts are published to RStudio Connect:
 
+1. All curated assets for this demo using `connectwidgets`: https://colorado.rstudio.com/rsc/pointblank/curation.html. 
+1. Example project webpage summarizing our adhoc analysis documents https://colorado.rstudio.com/rsc/strike_project_info/. 
 1. Data summary - see scan_data() at https://colorado.rstudio.com/rsc/strikes_scan_data/
 1. Data validation results - see the agent published at https://colorado.rstudio.com/rsc/strikes_validation_agent/
 1. Data Dictionary so we are clear on the definitions and assumptions around our data - see https://colorado.rstudio.com/rsc/strikes_data_dictionary/
