@@ -57,7 +57,7 @@ pointblank_content <- client %>%
 
 ```{r grid}
 pointblank_content %>%
-  slice(-1) %>%
+  slice(-2) %>%
   rsc_grid()
 ```
 
@@ -65,6 +65,6 @@ pointblank_content %>%
 
 ```{r card}
 pointblank_content %>%
-  slice(1) %>%
+  slice(2) %>%
   rsc_card()
 ```
