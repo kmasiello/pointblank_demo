@@ -6,3 +6,4 @@
 .Rprofile
 02_etl/rsconnect
 rsconnect
+*.html
