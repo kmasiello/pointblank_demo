@@ -23,7 +23,6 @@ cols <- c("Latitude", "Longitude", "UTC", "Pollutant",
           "AQI", "Category", "Site_Name", "Site_Agency", 
           "AQS_ID", "Full_AWS_ID")
 
-path <- here::here("03_multiagent/agents")
 
 ```
 
@@ -48,8 +47,12 @@ x_write_disk(agent_aqi, filename = paste0(path,"/","agent",format_ISO8601(now())
              keep_tbl = TRUE, keep_extracts = TRUE)
 
 #create multiagent
-(multiagent <- read_disk_multiagent(pattern = "agent2021-08*", 
-                                    path = path))
+path <- here::here("03_multiagent/agents")
+
+multiagent <- pointblank::read_disk_multiagent(pattern = "agent2021-08*", 
+                                    path = path)
+
+get_multiagent_report(multiagent, display_mode = "wide")
 
 ```
 
