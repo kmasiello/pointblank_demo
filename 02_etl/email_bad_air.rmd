@@ -43,9 +43,9 @@ ggplot(sample_readings, aes(fill = color, ymax = AQI/350, ymin = 0, xmax = 2, xm
   facet_wrap(~Site_Name, ncol = 3) +
   theme_void() +
   scale_fill_manual(values = c(
-    "green"="forestgreen","yellow"="yellow", "orange"="darkorange", 
+    "green"="forestgreen","yellow"="#EDCB6E", "orange"="darkorange", 
     "red"="red", "purple"="purple1", "maroon"="red4")) +
-  scale_colour_manual(values = c("green"="forestgreen","yellow"="yellow", "orange"="darkorange", 
+  scale_colour_manual(values = c("green"="forestgreen","yellow"="#EDCB6E", "orange"="darkorange", 
                                  "red"="red", "purple"="purple1", "maroon"="red4")) +
   theme(strip.background = element_blank(),
         strip.text.x = element_blank()) +
